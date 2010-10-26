@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<script type='text/javascript' src='filereader.js'></script>
+	<style type='text/css'>
+	#dropbox {padding:20px;  border: solid 1px green; }
+	#dropbox.drag { border: solid 1px red; }
+	#preview { margin-top:10px; }
+	</style>
+</head>
+
+<body>
+
+<form>
+  <input type="file" id="fileElem" multiple accept="image/*" />
+  <div id='dropbox'>Drag and drop files from your desktop here</div>
+</form>
+<div id="fileList">
+  <div id='preview'></div>
+</div>
+
+<script type='text/javascript'>
+function log() {console.log(arguments)};
+
+var fileInput = document.getElementById('fileElem');
+var dropbox = document.getElementById("dropbox");
+var preview = document.getElementById("preview");
+
+var opts = {
+	readAs: 'DataURL',
+	accept: 'image/*',
+	dragClass: 'drag',
+	on: {
+		load: function(e) {
+			var img = document.createElement("img");
+			img.src = e.target.result;
+			preview.appendChild(img);
+		},
+		loadstart: function(e) {
+			
+		},
+		loadend: function(e) {
+		
+		},
+		progress: function(e) {
+		
+		},
+		skip: function(file) {
+		
+		}
+	}
+};
+
+FileReaderJS.setupInput(fileInput, opts);
+FileReaderJS.setupDrop(dropbox, opts);
+</script>
+</body>
+</html>

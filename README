@@ -1,0 +1,32 @@
+filereader.js
+A small library independant wrapper for the JavaScript FileReader interface
+
+FileReader is an interface that allows JavaScript to read data from Files or Blobs into memory.
+See http://dev.w3.org/2006/webapi/FileAPI/#FileReader-interface for basic information
+See http://dev.w3.org/2006/webapi/FileAPI/#event-summary for details on Options/on.* callbacks
+
+Usage:
+FileReaderJS.setupInput(input, opts);
+FileReaderJS.setupDrop(element, opts); 
+
+Options:
+	readAs: 'ArrayBuffer' | 'BinaryString' | 'Text' | 'DataURL' (default)
+	accept: A regex string to match the contenttype of a given file.
+			For example: 'image/*' to only accept images.
+			on.skip will be called when a file does not match the filter.
+	dragClass: A CSS class to add onto the element called with setupDrop while dragging
+	on: 
+		loadstart: function(e) { }
+		progress: function(e) { }
+		load: function(e) { }
+		abort: function(e) { }
+		error: function(e) { }
+		loadend: function(e) { }
+		skip: function(file) { } Called only when a read has been skipped because of the accept string
+
+What it isn't:
+* A drag and drop file uploader.  If you wish to upload the files to a server, search for 'javascript drag and drop file upload' online.  There are plugins that do exactly this.
+
+
+All contributions welcome.  This plugin is open source under the MIT License, feel free to use it.
+Author: Brian Grinstead
