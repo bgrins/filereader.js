@@ -7,19 +7,19 @@
 	#dropbox {padding:20px;  border: solid 1px green; }
 	#dropbox.drag { border: solid 1px red; }
 	#preview { margin-top:10px; }
+	#preview>div { float:left; margin:20px; border: solid 2px #d88; }
 	</style>
 </head>
 
 <body>
 
 <form>
-  <input type="file" id="fileElem" multiple accept="image/*" />
+  <input type="file" id="fileElem" multiple />
   <div id='dropbox'>Drag and drop files from your desktop here</div>
 </form>
 <div id="fileList">
   <div id='preview'></div>
 </div>
-
 <script type='text/javascript'>
 function log() {console.log(arguments)};
 
@@ -29,13 +29,12 @@ var preview = document.getElementById("preview");
 
 var opts = {
 	readAs: 'DataURL',
-	accept: 'image/*',
 	dragClass: 'drag',
 	on: {
-		load: function(e) {
-			var img = document.createElement("img");
-			img.src = e.target.result;
-			preview.appendChild(img);
+		load: function(e, file) {
+			var data = document.createElement("div");
+			data.innerHTML = fileTemplate(file, e.target.result);
+			preview.appendChild(data);
 		},
 		loadstart: function(e) {
 			
@@ -51,7 +50,24 @@ var opts = {
 		}
 	}
 };
-
+function fileTemplate(file, result) {
+	// todo: some kind of micro templating
+	var html = [];
+	
+	html.push("<pre>");
+	for (var p in file) {
+		var type = typeof(file[p]);
+		if (type == 'string' || type == 'number') {
+			html.push(p + " - " + file[p] + '\n');
+		}
+	}
+	html.push("</pre>");
+	
+	if (file.type.indexOf("image/") != -1) {
+		html.push("<img src='" + result + "' alt='"+file.name+"' />");
+	}
+	return html.join('');
+}
 FileReaderJS.setupInput(fileInput, opts);
 FileReaderJS.setupDrop(dropbox, opts);
 </script>
