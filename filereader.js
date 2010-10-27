@@ -130,7 +130,7 @@ Options:
 				})(eventName, file);
 			}
 			
-			reader['readAs' + opts.readAs](files[i]);
+			reader['readAs' + opts.readAs](file);
 		}
 	}
 	
