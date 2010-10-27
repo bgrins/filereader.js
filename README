@@ -16,17 +16,19 @@ Options:
 			on.skip will be called when a file does not match the filter.
 	dragClass: A CSS class to add onto the element called with setupDrop while dragging
 	on: 
-		loadstart: function(e) { }
-		progress: function(e) { }
-		load: function(e) { }
-		abort: function(e) { }
-		error: function(e) { }
-		loadend: function(e) { }
+		loadstart: function(e, file) { }
+		progress: function(e, file) { }
+		load: function(e, file) { }
+		abort: function(e, file) { }
+		error: function(e, file) { }
+		loadend: function(e, file) { }
 		skip: function(file) { } Called only when a read has been skipped because of the accept string
 
 What it isn't:
 * A drag and drop file uploader.  If you wish to upload the files to a server, search for 'javascript drag and drop file upload' online.  There are plugins that do exactly this.
 
+Possible future changes:
+* Add a readAs: 'AutoDetect' option which would choose the 'readAs' option based on the content type of the file.  This way a text file and image could be read using the same drop zone/input.
 
 All contributions welcome.  This plugin is open source under the MIT License, feel free to use it.
 Author: Brian Grinstead
