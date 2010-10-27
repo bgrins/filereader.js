@@ -46,16 +46,17 @@ Options:
 			}
 		}
 	};
+	var fileReaderEvents = ['loadstart', 'progress', 'load', 'abort', 'error', 'loadend'];
 	
 	if (!FileReader) {
 		// Not all browsers support the FileReader interface.  Return with the enabled bit = false
 		return;
 	}
 	
+	// The interface is supported, bind the FileReaderJS callbacks
 	FileReaderJS.enabled = true;
-    FileReaderJS.setupInput = setupInput;
+	FileReaderJS.setupInput = setupInput;
 	FileReaderJS.setupDrop = setupDrop;
-	var fileReaderEvents = ['loadstart', 'progress', 'load', 'abort', 'error', 'loadend'];
 	
 	function setupInput(input, opts) {
 		var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
