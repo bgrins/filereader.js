@@ -111,6 +111,10 @@ Options:
 				continue;  
 			}  
 			
+			// Modify the file object with convenience properties
+			file.nameNoExtension = file.name.substring(0, file.name.lastIndexOf('.'));
+			file.extension = file.name.substring(file.name.lastIndexOf('.') + 1);
+			
 			var reader = new FileReader();
 			
 			for (var j = 0; j < fileReaderEvents.length; j++) {
