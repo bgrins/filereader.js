@@ -17,12 +17,12 @@ Options:
 			on.skip will be called when a file does not match the filter.
 	dragClass: A CSS class to add onto the element called with setupDrop while dragging
 	on: 
-		loadstart: function(e) { }
-		progress: function(e) { }
-		load: function(e) { }
-		abort: function(e) { }
-		error: function(e) { }
-		loadend: function(e) { }
+		loadstart: function(e, file) { }
+		progress: function(e, file) { }
+		load: function(e, file) { }
+		abort: function(e, file) { }
+		error: function(e, file) { }
+		loadend: function(e, file) { }
 		skip: function(file) { } Called only when a read has been skipped because of the accept string
 */
 
@@ -113,7 +113,16 @@ Options:
 			var reader = new FileReader();
 			
 			for (var j = 0; j < fileReaderEvents.length; j++) {
-				reader['on' + fileReaderEvents[j]] = opts.on[fileReaderEvents[j]];
+				var eventName = fileReaderEvents[j];
+				
+				// bind to a self executing function that returns a function that
+				// passes the file along to the callback, so we have access to the file
+				// from the ProgressEvent.  Need to keep scope for current file and eventName
+				reader['on' + eventName] = (function(eventName, file) {
+					return function(e) {
+						opts.on[eventName](e, file);
+					};
+				})(eventName, file);
 			}
 			
 			reader['readAs' + opts.readAs](files[i]);
