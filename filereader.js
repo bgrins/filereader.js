@@ -78,6 +78,9 @@ Options:
 		function drop(e) {
 			e.stopPropagation();
 			e.preventDefault();
+			if (dragClass) {
+				removeClass(dropbox, dragClass);
+			}
 			handleFiles(e.dataTransfer.files, instanceOptions);
 		}
 		function dragenter(e) {
