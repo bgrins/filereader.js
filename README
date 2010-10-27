@@ -8,6 +8,7 @@ See http://dev.w3.org/2006/webapi/FileAPI/#event-summary for details on Options/
 Usage:
 FileReaderJS.setupInput(input, opts);
 FileReaderJS.setupDrop(element, opts); 
+See demo.html for a ( slightly) more complete example.
 
 Options:
 	readAs: 'ArrayBuffer' | 'BinaryString' | 'Text' | 'DataURL' (default)
@@ -27,8 +28,8 @@ Options:
 What it isn't:
 * A drag and drop file uploader.  If you wish to upload the files to a server, search for 'javascript drag and drop file upload' online.  There are plugins that do exactly this.
 
-Possible future changes:
-* Add a readAs: 'AutoDetect' option which would choose the 'readAs' option based on the content type of the file.  This way a text file and image could be read using the same drop zone/input.
+Future changes (hopefully):
+* Once FileReaderSync in implemented in browsers, provide this as an option to provide a non-blocking way to read files using Web Workers.  See http://www.w3.org/TR/FileAPI/#FileReaderSync and https://bugs.webkit.org/show_bug.cgi?id=41567.
 
-All contributions welcome.  This plugin is open source under the MIT License, feel free to use it.
+Any contributions welcome.  This plugin is open source under the MIT License.
 Author: Brian Grinstead
