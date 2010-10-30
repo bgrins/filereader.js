@@ -3,32 +3,7 @@ filereader.js - a lightweight wrapper for common FileReader usage.
 Open source code under MIT license: http://www.opensource.org/licenses/mit-license.php
 Author: Brian Grinstead
 
-See http://dev.w3.org/2006/webapi/FileAPI/#FileReader-interface for basic information
-See http://dev.w3.org/2006/webapi/FileAPI/#event-summary for details on Options/on.* callbacks
-
-Usage:
-FileReaderJS.setupInput(input, opts);
-FileReaderJS.setupDrop(div, opts); 
-
-If you have jQuery:
-$(input).fileReaderJS(opts);
-
-Options:
-	readAs: 'ArrayBuffer' | 'BinaryString' | 'Text' | 'DataURL' (default)
-	accept: A regex string to match the contenttype of a given file.
-			For example: 'image/*' to only accept images.
-			on.skip will be called when a file does not match the filter.
-	dragClass: A CSS class to add onto the element called with setupDrop while dragging
-	on: 
-		loadstart: function(e, file) { }
-		progress: function(e, file) { }
-		load: function(e, file) { }
-		abort: function(e, file) { }
-		error: function(e, file) { }
-		loadend: function(e, file) { }
-		skip: function(file) { } Called only when a read has been skipped because of the accept string
-		groupstart: function(groupID, files) { } 
-		groupend: function(groupID, files) { } 
+See http://github.com/bgrins/filereader.js for documentation
 */
 
 (function(global) {

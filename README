@@ -1,14 +1,12 @@
 filereader.js
 A small library independant wrapper for the JavaScript FileReader interface
 
-FileReader is an interface that allows JavaScript to read data from Files or Blobs into memory.
 See http://dev.w3.org/2006/webapi/FileAPI/#FileReader-interface for basic information
 See http://dev.w3.org/2006/webapi/FileAPI/#event-summary for details on Options/on.* callbacks
 
 Usage:
 FileReaderJS.setupInput(input, opts);
-FileReaderJS.setupDrop(element, opts); 
-See demo.html for a (slightly) more complete example.
+FileReaderJS.setupDrop(div, opts); 
 
 If you have jQuery:
 $(input).fileReaderJS(opts);
@@ -30,8 +28,20 @@ Options:
 		groupstart: function(groupID, files) { } 
 		groupend: function(groupID, files) { } 
 
+Parameters to events:
+	e - the native ProgressEvent created by the FileReader
+	file - an extension of the original File object.  See W3 link above for all native parameters.  Here are the extra fields:
+		id: a generated int id for this file.
+		nameNoExtension: 'myImage' instead of 'myImage.png'
+		extension: 'png' instead of 'myImage.png'
+		prettySize: '46.47' kb instead of 47585 (size field)
+		groupID: the group that it belongs to
+	group: simple grouping of files.  Each time a change event or drop even happens and a FileList is created, all of these files are stored inside a group object.
+	
+	
 What it isn't:
 * A drag and drop file uploader.  If you wish to upload the files to a server, search for 'javascript drag and drop file upload' online.  There are plugins that do exactly this.
+* Completely cross browser - Chrome 6+, Firefox 3.6+, Safari 5.*+ support the File API.
 
 Future changes (hopefully):
 * Once FileReaderSync in implemented in browsers, provide this as an option to provide a non-blocking way to read files using Web Workers.  See http://www.w3.org/TR/FileAPI/#FileReaderSync and https://bugs.webkit.org/show_bug.cgi?id=41567.

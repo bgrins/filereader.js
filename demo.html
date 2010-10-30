@@ -11,6 +11,8 @@
 	#preview pre { margin:20px 0; border: solid 2px #d88; }
  
 	</style>
+	
+
 </head>
 
 <body>
@@ -23,7 +25,7 @@
   <div id='preview'></div>
 </div>
 <script type='text/javascript'>
-function log() {console.log(arguments)};
+function log() { console.log(arguments) };
 
 var fileInput = document.getElementById('fileElem');
 var dropbox = document.getElementById("dropbox");
@@ -85,8 +87,9 @@ function groupTemplate(groupID, files) {
 	return  start + html.join('') + "</div>";
 }
 
-FileReaderJS.setupInput(fileInput, opts);
-FileReaderJS.setupDrop(dropbox, opts);
+FileReaderJS.setupInput(fileInput);
+FileReaderJS.setupDrop(dropbox);
+
 </script>
 </body>
 </html>
