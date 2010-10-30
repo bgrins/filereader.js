@@ -71,7 +71,7 @@ Options:
 	
 	function setupDrop(dropbox, opts) {
 		var instanceOptions = extend(extend({}, FileReaderJS.opts), opts),
-			dragClass = opts.dragClass;
+			dragClass = instanceOptions.dragClass;
 		
 		dropbox.addEventListener("dragenter", dragenter, false);
 		dropbox.addEventListener("dragleave", dragleave, false);
