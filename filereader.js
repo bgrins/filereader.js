@@ -85,15 +85,18 @@ See http://github.com/bgrins/filereader.js for documentation
 		}
 	}
 
-	// Modify the file object with convenience properties
+	// Modify the file object with extra properties
 	function setupCustomFileProperties(files, groupID) {
 		for (var i = 0; i < files.length; i++) {
 			var file = files[i];
-			file.nameNoExtension = file.name.substring(0, file.name.lastIndexOf('.'));
-			file.extension = file.name.substring(file.name.lastIndexOf('.') + 1);
-			file.id = getFileID();	
-			file.groupID = groupID;
-			file.prettySize = prettySize(file.size);
+			file.extra = {
+				nameNoExtension: file.name.substring(0, file.name.lastIndexOf('.')),
+				extension: file.name.substring(file.name.lastIndexOf('.') + 1),
+				id: getFileID(),
+				groupID: groupID,
+				prettySize: prettySize(file.size)
+			};
+			log(file.extra, file);
 		}
 	}
 	

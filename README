@@ -37,12 +37,14 @@ Options:
 
 Parameters to events:
 	e - the native ProgressEvent created by the FileReader
-	file - an extension of the original File object.  See W3 link above for all native parameters.  Here are the extra fields:
-		id: a generated int id for this file.
-		groupID: the group that it belongs to
-		nameNoExtension: 'myImage' instead of 'myImage.png'
-		extension: 'png' instead of 'myImage.png'
-		prettySize: '46.47' kb instead of 47585 (size field)
+	file - an extension of the original File object.  See W3 link above for all native parameters.  Here are the extra fields 
+		file.extra = { 
+			id: a generated int id for this file.
+			groupID: the group that it belongs to
+			nameNoExtension: 'myImage' instead of 'myImage.png'
+			extension: 'png' instead of 'myImage.png'
+			prettySize: '46.47' kb instead of 47585 (size field)
+		}
 	
 	group: simple grouping of files.  Each time a change event or drop even happens and a FileList is created, all of these files are stored inside a group object.
 		groupID: a generated int id for this group
