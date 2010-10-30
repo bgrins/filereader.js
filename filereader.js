@@ -95,7 +95,8 @@ See http://github.com/bgrins/filereader.js for documentation
 		}
 	}
 	
-	function readAs(type, readAsMap, readAsDefault) {
+	// Return method name for 'readAs*' - http://dev.w3.org/2006/webapi/FileAPI/#reading-a-file
+	function getReadAsMethod(type, readAsMap, readAsDefault) {
 		for (var r in readAsMap) {
 			if (type.match(new RegExp(r))) {
 				return 'readAs' + readAsMap[r];
@@ -152,7 +153,7 @@ See http://github.com/bgrins/filereader.js for documentation
 				})(eventName, file);
 			}
 			
-			reader[readAs(file.type, opts.readAsMap, opts.readAsDefault)](file);
+			reader[getReadAsMethod(file.type, opts.readAsMap, opts.readAsDefault)](file);
 		}
 	}
 	
