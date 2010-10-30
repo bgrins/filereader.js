@@ -24,6 +24,8 @@ Options:
 		error: function(e, file) { }
 		loadend: function(e, file) { }
 		skip: function(file) { } Called only when a read has been skipped because of the accept string
+		groupstart: function(groupID, files) { } 
+		groupend: function(groupID, files) { } 
 
 What it isn't:
 * A drag and drop file uploader.  If you wish to upload the files to a server, search for 'javascript drag and drop file upload' online.  There are plugins that do exactly this.

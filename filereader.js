@@ -24,6 +24,8 @@ Options:
 		error: function(e, file) { }
 		loadend: function(e, file) { }
 		skip: function(file) { } Called only when a read has been skipped because of the accept string
+		groupstart: function(groupID, files) { } 
+		groupend: function(groupID, files) { } 
 */
 
 (function(global) {
@@ -42,7 +44,9 @@ Options:
 				abort: noop,
 				error: noop,
 				loadend: noop,
-				skip: noop
+				skip: noop,
+				groupstart: noop,
+				groupend: noop
 			}
 		}
 	};
@@ -102,7 +106,35 @@ Options:
 		}
 	}
 
+	// Modify the file object with convenience properties
+	function setupCustomFileProperties(files, groupID) {
+		for (var i = 0; i < files.length; i++) {
+			var file = files[i];
+			file.nameNoExtension = file.name.substring(0, file.name.lastIndexOf('.'));
+			file.extension = file.name.substring(file.name.lastIndexOf('.') + 1);
+			file.id = getFileID();	
+			file.groupID = groupID;
+		}
+	}
+	
 	function handleFiles(files, opts) {
+	
+		var groupID = getGroupID(),
+			groupLength = groupFilesLeft = files.length,
+			groupFileDone = function() {
+				if (--groupFilesLeft == 0) {
+				    opts.on.groupend(groupID, files);
+				}
+			};
+			
+		setupCustomFileProperties(files, groupID);
+		
+		
+		opts.on.groupstart(groupID, files);
+		if (!groupLength) {
+			opts.on.groupend(groupID, files);
+		}
+		
 		for (var i = 0; i < files.length; i++) {
 			
 			var file = files[i];
@@ -110,10 +142,6 @@ Options:
 				opts.on.skip(file);
 				continue;  
 			}  
-			
-			// Modify the file object with convenience properties
-			file.nameNoExtension = file.name.substring(0, file.name.lastIndexOf('.'));
-			file.extension = file.name.substring(file.name.lastIndexOf('.') + 1);
 			
 			var reader = new FileReader();
 			
@@ -125,6 +153,9 @@ Options:
 				// from the ProgressEvent.  Need to keep scope for current file and eventName
 				reader['on' + eventName] = (function(eventName, file) {
 					return function(e) {
+						if (eventName == 'loadend') {
+							groupFileDone();
+						}
 						opts.on[eventName](e, file);
 					};
 				})(eventName, file);
@@ -169,5 +200,19 @@ Options:
 			ele.className=ele.className.replace(reg,' ');
 		}
 	}
+	
+	var getGroupID = (function() {
+		var id = 0;
+		return function() {
+			return id++;
+		}
+	})();
+	
+	var getFileID = (function() {
+		var id = 0;
+		return function() {
+			return id++;
+		}
+	})();
 	
 })(this);
