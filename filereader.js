@@ -44,7 +44,7 @@ See http://github.com/bgrins/filereader.js for documentation
 		
 		input.addEventListener("change", inputChange, false);
 		function inputChange(e) {
-			handleFiles(e.target.files, instanceOptions);
+			processFileList(e.target.files, instanceOptions);
 		}
 	}
 	
@@ -63,7 +63,7 @@ See http://github.com/bgrins/filereader.js for documentation
 			if (dragClass) {
 				removeClass(dropbox, dragClass);
 			}
-			handleFiles(e.dataTransfer.files, instanceOptions);
+			processFileList(e.dataTransfer.files, instanceOptions);
 		}
 		function dragenter(e) {
 			if (dragClass) {
@@ -105,7 +105,7 @@ See http://github.com/bgrins/filereader.js for documentation
 		return 'readAs' + readAsDefault;
 	}
 	
-	function handleFiles(files, opts) {
+	function processFileList(files, opts) {
 	
 		var group = { 
 			groupID: getGroupID(),
