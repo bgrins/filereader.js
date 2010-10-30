@@ -57,11 +57,6 @@ Options:
 		return;
 	}
 	
-	// The interface is supported, bind the FileReaderJS callbacks
-	FileReaderJS.enabled = true;
-	FileReaderJS.setupInput = setupInput;
-	FileReaderJS.setupDrop = setupDrop;
-	
 	function setupInput(input, opts) {
 		var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
 		
@@ -130,7 +125,6 @@ Options:
 			
 		setupCustomFileProperties(files, groupID);
 		
-		
 		opts.on.groupstart(groupID, files);
 		if (!groupLength) {
 			opts.on.groupend(groupID, files);
@@ -166,8 +160,6 @@ Options:
 		}
 	}
 	
-	
-	
 	// noop - A function that does nothing
 	function noop() { 
 
@@ -192,9 +184,11 @@ Options:
 	function hasClass(ele,cls) {
 		return ele.className.match(new RegExp('(\\s|^)'+cls+'(\\s|$)'));
 	}
+	
 	function addClass(ele,cls) {
 		if (!hasClass(ele,cls)) ele.className += " "+cls;
 	}
+	
 	function removeClass(ele,cls) {
 		if (hasClass(ele,cls)) {
 			var reg = new RegExp('(\\s|^)'+cls+'(\\s|$)');
@@ -222,5 +216,10 @@ Options:
 			return id++;
 		}
 	})();
+	
+	// The interface is supported, bind the FileReaderJS callbacks
+	FileReaderJS.enabled = true;
+	FileReaderJS.setupInput = setupInput;
+	FileReaderJS.setupDrop = setupDrop;
 	
 })(this);
