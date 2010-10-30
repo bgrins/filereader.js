@@ -9,6 +9,7 @@
 	#preview { margin-top:10px; }
 	#preview>div { border: solid 2px; margin:20px; padding:10px;}
 	#preview pre { margin:20px 0; border: solid 2px #d88; }
+	#preview pre.done { border-color: #8d8; }
  
 	</style>
 	
@@ -35,12 +36,13 @@ var opts = {
 	dragClass: 'drag',
 	on: {
 		load: function(e, file) {
+			var filePre = document.getElementById("group_" + file.groupID + "_file_" + file.id);
 			if (file.type.indexOf("image/") != -1) {
 				var div = document.createElement("div");
 				div.innerHTML = "<img src='" + e.target.result + "' alt='"+file.name+"' />";
-				document.getElementById("group_" + file.groupID + "_file_" + file.id).
-					appendChild(div);	
+				filePre.appendChild(div);	
 			}
+			filePre.className = 'done';
 		},
 		loadstart: function(e) {
 			
