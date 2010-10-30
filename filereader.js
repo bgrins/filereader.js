@@ -114,6 +114,7 @@ Options:
 			file.extension = file.name.substring(file.name.lastIndexOf('.') + 1);
 			file.id = getFileID();	
 			file.groupID = groupID;
+			file.prettySize = prettySize(file.size);
 		}
 	}
 	
@@ -199,6 +200,13 @@ Options:
 			var reg = new RegExp('(\\s|^)'+cls+'(\\s|$)');
 			ele.className=ele.className.replace(reg,' ');
 		}
+	}
+	
+	// prettySize: convert bytes to a more readable string
+	function prettySize(bytes) {
+		var s = ['bytes', 'kb', 'MB', 'GB', 'TB', 'PB'];
+		var e = Math.floor(Math.log(bytes)/Math.log(1024));
+		return (bytes/Math.pow(1024, Math.floor(e))).toFixed(2)+" "+s[e];
 	}
 	
 	var getGroupID = (function() {
