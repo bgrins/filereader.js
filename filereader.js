@@ -12,9 +12,13 @@ See http://github.com/bgrins/filereader.js for documentation
 	var FileReaderJS = global.FileReaderJS = { 
 		enabled: false,
 		opts: {
-			readAs: 'DataURL',
 			dragClass: false,
 			accept: false,
+			readAsMap: {
+				'image/*': 'DataURL',
+				'text/*' : 'Text'
+			},
+			readAsDefault: 'BinaryString',
 			on: {
 				loadstart: noop,
 				progress: noop,
@@ -91,6 +95,15 @@ See http://github.com/bgrins/filereader.js for documentation
 		}
 	}
 	
+	function readAs(type, readAsMap, readAsDefault) {
+		for (var r in readAsMap) {
+			if (type.match(new RegExp(r))) {
+				return 'readAs' + readAsMap[r];
+			}
+		}
+		return 'readAs' + readAsDefault;
+	}
+	
 	function handleFiles(files, opts) {
 	
 		var group = { 
@@ -139,7 +152,7 @@ See http://github.com/bgrins/filereader.js for documentation
 				})(eventName, file);
 			}
 			
-			reader['readAs' + opts.readAs](file);
+			reader[readAs(file.type, opts.readAsMap, opts.readAsDefault)](file);
 		}
 	}
 	

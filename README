@@ -12,7 +12,14 @@ If you have jQuery:
 $(input).fileReaderJS(opts);
 
 Options:
-	readAs: 'ArrayBuffer' | 'BinaryString' | 'Text' | 'DataURL' (default)
+	readAsMap: A collection taking key as a string that will be matched with regex against
+		file types and the type to read as.  If no match is found, it will use readAsDefault.
+		The default map is:
+		{
+			'image/*': 'DataURL',
+			'text/*' : 'Text'
+		}
+	readAsDefault: 'ArrayBuffer' | 'BinaryString' (default) | 'Text' | 'DataURL' 
 	accept: A regex string to match the contenttype of a given file.
 			For example: 'image/*' to only accept images.
 			on.skip will be called when a file does not match the filter.
