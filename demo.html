@@ -39,7 +39,7 @@ var opts = {
 	dragClass: 'drag',
 	on: {
 		load: function(e, file) {
-			var filePre = document.getElementById("group_" + file.extra.groupID + "_file_" + file.extra.id);
+			var filePre = document.getElementById("group_" + file.extra.groupID + "_file_" + file.extra.fileID);
 			if (file.type.indexOf("image/") != -1) {
 				var div = document.createElement("div");
 				div.innerHTML = "<img src='" + e.target.result + "' alt='"+file.name+"' />";
@@ -78,7 +78,7 @@ function groupTemplate(groupID, files) {
 	var html = [];
 	for (var i = 0; i < files.length; i++) {
 		var file = files[i];
-		html.push("<pre id='group_" + groupID + "_file_" + file.extra.id + "'>");
+		html.push("<pre id='group_" + groupID + "_file_" + file.extra.fileID + "'>");
 		html.push(JSON.stringify(file, null, '\t'));
 		html.push("</pre>");
 	}

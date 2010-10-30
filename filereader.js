@@ -92,7 +92,7 @@ See http://github.com/bgrins/filereader.js for documentation
 			file.extra = {
 				nameNoExtension: file.name.substring(0, file.name.lastIndexOf('.')),
 				extension: file.name.substring(file.name.lastIndexOf('.') + 1),
-				id: getFileID(),
+				fileID: getFileID(),
 				groupID: groupID,
 				prettySize: prettySize(file.size)
 			};

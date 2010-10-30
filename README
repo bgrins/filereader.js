@@ -39,7 +39,7 @@ Parameters to events:
 	e - the native ProgressEvent created by the FileReader
 	file - an extension of the original File object.  See W3 link above for all native parameters.  Here are the extra fields 
 		file.extra = { 
-			id: a generated int id for this file.
+			fileID: a generated int id for this file.
 			groupID: the group that it belongs to
 			nameNoExtension: 'myImage' instead of 'myImage.png'
 			extension: 'png' instead of 'myImage.png'
