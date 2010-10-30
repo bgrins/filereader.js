@@ -26,7 +26,10 @@
   <div id='preview'></div>
 </div>
 <script type='text/javascript'>
-function log() { console.log(arguments) };
+
+function log() {
+	if (console) { console.log(Array.prototype.slice.call(arguments)); }
+};
 
 var fileInput = document.getElementById('fileElem');
 var dropbox = document.getElementById("dropbox");
@@ -88,7 +91,6 @@ function groupTemplate(groupID, files) {
 	return  start + html.join('') + "</div>";
 }
 
-log("setting up", fileInput)
 FileReaderJS.setupInput(fileInput, opts);
 FileReaderJS.setupDrop(dropbox, opts);
 
