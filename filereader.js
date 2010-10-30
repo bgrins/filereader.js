@@ -93,19 +93,24 @@ See http://github.com/bgrins/filereader.js for documentation
 	
 	function handleFiles(files, opts) {
 	
-		var groupID = getGroupID(),
-			groupLength = groupFilesLeft = files.length,
-			groupFileDone = function() {
-				if (--groupFilesLeft == 0) {
-				    opts.on.groupend(groupID, files);
-				}
-			};
+		var group = { 
+			groupID: getGroupID(),
+			files: files
+		};
+		var filesLeft = files.length;
+		var groupFileDone =	function() {
+			if (--filesLeft == 0) {
+			    opts.on.groupend(group);
+			}
+		};
 			
-		setupCustomFileProperties(files, groupID);
+		setupCustomFileProperties(files, group.groupID);
 		
-		opts.on.groupstart(groupID, files);
-		if (!groupLength) {
-			opts.on.groupend(groupID, files);
+		opts.on.groupstart(group);
+		
+		// No files in group - call groupend immediately
+		if (!files.length) {
+			opts.on.groupend(group);
 		}
 		
 		for (var i = 0; i < files.length; i++) {

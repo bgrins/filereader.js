@@ -55,15 +55,15 @@ var opts = {
 		skip: function(file) {
 		
 		},
-		groupstart: function(groupID, files) {
+		groupstart: function(group) {
 			var data = document.createElement("div");
-			data.innerHTML = groupTemplate(groupID, files);
+			data.innerHTML = groupTemplate(group.groupID, group.files);
 			preview.appendChild(data);
 		},
-		groupend: function(groupID, files) {
+		groupend: function(group) {
 			var end = document.createElement("div");
 			end.innerHTML = "Ended: " + (new Date());
-			document.getElementById("group_" + groupID).appendChild(end);
+			document.getElementById("group_" + group.groupID).appendChild(end);
 		}
 	}
 };

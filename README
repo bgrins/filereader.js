@@ -25,19 +25,22 @@ Options:
 		error: function(e, file) { }
 		loadend: function(e, file) { }
 		skip: function(file) { } Called only when a read has been skipped because of the accept string
-		groupstart: function(groupID, files) { } 
-		groupend: function(groupID, files) { } 
+		groupstart: function(group) { } 
+		groupend: function(group) { } 
 
 Parameters to events:
 	e - the native ProgressEvent created by the FileReader
 	file - an extension of the original File object.  See W3 link above for all native parameters.  Here are the extra fields:
 		id: a generated int id for this file.
+		groupID: the group that it belongs to
 		nameNoExtension: 'myImage' instead of 'myImage.png'
 		extension: 'png' instead of 'myImage.png'
 		prettySize: '46.47' kb instead of 47585 (size field)
-		groupID: the group that it belongs to
-	group: simple grouping of files.  Each time a change event or drop even happens and a FileList is created, all of these files are stored inside a group object.
 	
+	group: simple grouping of files.  Each time a change event or drop even happens and a FileList is created, all of these files are stored inside a group object.
+		groupID: a generated int id for this group
+		files: the FileList associated with the group
+		
 	
 What it isn't:
 * A drag and drop file uploader.  If you wish to upload the files to a server, search for 'javascript drag and drop file upload' online.  There are plugins that do exactly this.
