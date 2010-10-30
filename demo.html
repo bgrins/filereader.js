@@ -87,8 +87,9 @@ function groupTemplate(groupID, files) {
 	return  start + html.join('') + "</div>";
 }
 
-FileReaderJS.setupInput(fileInput);
-FileReaderJS.setupDrop(dropbox);
+log("setting up", fileInput)
+FileReaderJS.setupInput(fileInput, opts);
+FileReaderJS.setupDrop(dropbox, opts);
 
 </script>
 </body>
