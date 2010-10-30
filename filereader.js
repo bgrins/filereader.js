@@ -39,6 +39,7 @@ See http://github.com/bgrins/filereader.js for documentation
 		return;
 	}
 	
+	// Bind the 'change' event to an input[type=file]
 	function setupInput(input, opts) {
 		var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
 		
@@ -48,6 +49,7 @@ See http://github.com/bgrins/filereader.js for documentation
 		}
 	}
 	
+	// Bind the 'drop' event for a DOM element
 	function setupDrop(dropbox, opts) {
 		var instanceOptions = extend(extend({}, FileReaderJS.opts), opts),
 			dragClass = instanceOptions.dragClass;
@@ -105,6 +107,7 @@ See http://github.com/bgrins/filereader.js for documentation
 		return 'readAs' + readAsDefault;
 	}
 	
+	// Process a FileList with FileReader.
 	function processFileList(files, opts) {
 	
 		var group = { 
