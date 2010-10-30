@@ -8,7 +8,10 @@ See http://dev.w3.org/2006/webapi/FileAPI/#event-summary for details on Options/
 
 Usage:
 FileReaderJS.setupInput(input, opts);
-FileReaderJS.setupDrop(element, opts); 
+FileReaderJS.setupDrop(div, opts); 
+
+If you have jQuery:
+$(input).fileReaderJS(opts);
 
 Options:
 	readAs: 'ArrayBuffer' | 'BinaryString' | 'Text' | 'DataURL' (default)
@@ -221,5 +224,14 @@ Options:
 	FileReaderJS.enabled = true;
 	FileReaderJS.setupInput = setupInput;
 	FileReaderJS.setupDrop = setupDrop;
+	
+	// setup jQuery plugin if available
+	if (typeof(jQuery) !== "undefined") {
+		jQuery.fn.fileReaderJS = function(opts) {
+			return this.each(function() {
+				$(this).is("input") ? setupInput(this, opts) : setupDrop(this, opts);
+			});
+		};
+	}
 	
 })(this);
