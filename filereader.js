@@ -39,7 +39,7 @@ See http://github.com/bgrins/filereader.js for documentation
 		return;
 	}
 	
-	// Bind the 'change' event to an input[type=file]
+	// setupInput: bind the 'change' event to an input[type=file]
 	function setupInput(input, opts) {
 		var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
 		
@@ -49,7 +49,7 @@ See http://github.com/bgrins/filereader.js for documentation
 		}
 	}
 	
-	// Bind the 'drop' event for a DOM element
+	// setupDrop: bind the 'drop' event for a DOM element
 	function setupDrop(dropbox, opts) {
 		var instanceOptions = extend(extend({}, FileReaderJS.opts), opts),
 			dragClass = instanceOptions.dragClass;
@@ -85,7 +85,7 @@ See http://github.com/bgrins/filereader.js for documentation
 		}
 	}
 
-	// Modify the file object with extra properties
+	// setupCustomFileProperties: modify the file object with extra properties
 	function setupCustomFileProperties(files, groupID) {
 		for (var i = 0; i < files.length; i++) {
 			var file = files[i];
@@ -100,7 +100,7 @@ See http://github.com/bgrins/filereader.js for documentation
 		}
 	}
 	
-	// Return method name for 'readAs*' - http://dev.w3.org/2006/webapi/FileAPI/#reading-a-file
+	// getReadAsMethod: return method name for 'readAs*' - http://dev.w3.org/2006/webapi/FileAPI/#reading-a-file
 	function getReadAsMethod(type, readAsMap, readAsDefault) {
 		for (var r in readAsMap) {
 			if (type.match(new RegExp(r))) {
@@ -110,7 +110,7 @@ See http://github.com/bgrins/filereader.js for documentation
 		return 'readAs' + readAsDefault;
 	}
 	
-	// Process a FileList with FileReader.
+	// processFileList: read the files with FileReader, send off custom events.
 	function processFileList(files, opts) {
 	
 		var group = { 
@@ -163,12 +163,12 @@ See http://github.com/bgrins/filereader.js for documentation
 		}
 	}
 	
-	// noop - A function that does nothing
+	// noop: do nothing
 	function noop() { 
 
 	}
 	
-	// extend - used to make deep copies of options object
+	// extend: used to make deep copies of options object
 	function extend(destination, source) {
 		for (var property in source) {
 			if (source[property] && source[property].constructor &&
@@ -183,15 +183,17 @@ See http://github.com/bgrins/filereader.js for documentation
 		return destination;
 	}
 	
-	// add/remove/has Class: basic class manipulation for drop zone
+	// hasClass: does an element have the css class?
 	function hasClass(ele,cls) {
 		return ele.className.match(new RegExp('(\\s|^)'+cls+'(\\s|$)'));
 	}
 	
+	// addClass: add the css class for the element.
 	function addClass(ele,cls) {
 		if (!hasClass(ele,cls)) ele.className += " "+cls;
 	}
 	
+	// removeClass: remove the css class from the element.
 	function removeClass(ele,cls) {
 		if (hasClass(ele,cls)) {
 			var reg = new RegExp('(\\s|^)'+cls+'(\\s|$)');
@@ -199,19 +201,21 @@ See http://github.com/bgrins/filereader.js for documentation
 		}
 	}
 	
-	// prettySize: convert bytes to a more readable string
+	// prettySize: convert bytes to a more readable string.
 	function prettySize(bytes) {
 		var s = ['bytes', 'kb', 'MB', 'GB', 'TB', 'PB'];
 		var e = Math.floor(Math.log(bytes)/Math.log(1024));
 		return (bytes/Math.pow(1024, Math.floor(e))).toFixed(2)+" "+s[e];
 	}
 	
+	// getGroupID: generate a unique int ID for groups.
 	var getGroupID = (function(id) {
 		return function() {
 			return id++;
 		}
 	})(0);
 	
+	// getFileID: generate a unique int ID for files
 	var getFileID = (function(id) {
 		return function() {
 			return id++;
