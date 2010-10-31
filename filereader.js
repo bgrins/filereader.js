@@ -151,10 +151,10 @@ See http://github.com/bgrins/filereader.js for documentation
 				// from the ProgressEvent.  Need to keep scope for current file and eventName
 				reader['on' + eventName] = (function(eventName, file) {
 					return function(e) {
+						opts.on[eventName](e, file);
 						if (eventName == 'loadend') {
 							groupFileDone();
 						}
-						opts.on[eventName](e, file);
 					};
 				})(eventName, file);
 			}
