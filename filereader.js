@@ -206,19 +206,17 @@ See http://github.com/bgrins/filereader.js for documentation
 		return (bytes/Math.pow(1024, Math.floor(e))).toFixed(2)+" "+s[e];
 	}
 	
-	var getGroupID = (function() {
-		var id = 0;
+	var getGroupID = (function(id) {
 		return function() {
 			return id++;
 		}
-	})();
+	})(0);
 	
-	var getFileID = (function() {
-		var id = 0;
+	var getFileID = (function(id) {
 		return function() {
 			return id++;
 		}
-	})();
+	})(0);
 	
 	// The interface is supported, bind the FileReaderJS callbacks
 	FileReaderJS.enabled = true;
