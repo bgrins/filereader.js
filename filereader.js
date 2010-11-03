@@ -28,7 +28,8 @@ See http://github.com/bgrins/filereader.js for documentation
 				loadend: noop,
 				skip: noop,
 				groupstart: noop,
-				groupend: noop
+				groupend: noop,
+				beforestart: noop
 			}
 		}
 	};
@@ -96,7 +97,6 @@ See http://github.com/bgrins/filereader.js for documentation
 				groupID: groupID,
 				prettySize: prettySize(file.size)
 			};
-			log(file.extra, file);
 		}
 	}
 	
@@ -138,8 +138,15 @@ See http://github.com/bgrins/filereader.js for documentation
 			var file = files[i];
 			if (opts.accept && !file.type.match(new RegExp(opts.accept))) {  
 				opts.on.skip(file);
+				groupFileDone();
 				continue;  
 			}  
+			
+			if (opts.on.beforestart(file) === false) {
+				opts.on.skip(file);
+				groupFileDone();
+				continue;
+			}
 			
 			var reader = new FileReader();
 			

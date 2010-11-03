@@ -31,6 +31,7 @@ Options:
 		abort: function(e, file) { }
 		error: function(e, file) { }
 		loadend: function(e, file) { }
+		beforestart: function(file) { } Called before a file is passed to the FileReader.  Return false to prevent processing.  This is used along with the 'accept' parameter to skip a file (ex: an image is too big to process).  This wouldn't be needed, except that Chrome sometimes crashes when calling abort(): http://code.google.com/p/chromium/issues/detail?id=60979
 		skip: function(file) { } Called only when a read has been skipped because of the accept string
 		groupstart: function(group) { } 
 		groupend: function(group) { } 
