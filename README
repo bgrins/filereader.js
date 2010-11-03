@@ -54,7 +54,7 @@ Parameters to events:
 	
 What it isn't:
 * A drag and drop file uploader.  If you wish to upload the files to a server, search for 'javascript drag and drop file upload' online.  There are plugins that do exactly this.
-* Completely cross browser - Chrome 6+, Firefox 3.6+, Safari 5.*+ support the File API.
+* Completely cross browser - Chrome 6+, Firefox 3.6+, are the only current versions that support the File API. Safari 5.*+ (future releases) are planning on it.
 
 Future changes (hopefully):
 * Once FileReaderSync in implemented in browsers, provide this as an option to provide a non-blocking way to read files using Web Workers.  See http://www.w3.org/TR/FileAPI/#FileReaderSync and https://bugs.webkit.org/show_bug.cgi?id=41567.
