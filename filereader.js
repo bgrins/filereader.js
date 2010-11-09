@@ -81,6 +81,9 @@ See http://github.com/bgrins/filereader.js for documentation
 			}
 		}
 		function dragover(e) {
+			if (dragClass) {
+				addClass(dropbox, dragClass);
+			}
 			e.stopPropagation();
 			e.preventDefault();
 		}
