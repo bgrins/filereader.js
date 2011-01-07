@@ -31,7 +31,8 @@ See http://github.com/bgrins/filereader.js for documentation
 				groupend: noop,
 				beforestart: noop
 			}
-		}
+		},
+		output: []
 	};
 	var fileReaderEvents = ['loadstart', 'progress', 'load', 'abort', 'error', 'loadend'];
 	
@@ -118,11 +119,16 @@ See http://github.com/bgrins/filereader.js for documentation
 	
 		var group = { 
 			groupID: getGroupID(),
-			files: files
+			files: files,
+			started: new Date()
 		};
+		
+		FileReaderJS.output.push(group);
+		
 		var filesLeft = files.length;
 		var groupFileDone =	function() {
 			if (--filesLeft == 0) {
+				group.ended = new Date();
 			    opts.on.groupend(group);
 			}
 		};
@@ -133,6 +139,7 @@ See http://github.com/bgrins/filereader.js for documentation
 		
 		// No files in group - call groupend immediately
 		if (!files.length) {
+			group.ended = new Date();
 			opts.on.groupend(group);
 		}
 		
