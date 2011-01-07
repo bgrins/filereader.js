@@ -2,18 +2,21 @@
 <html>
 <head>
 	<meta charset="utf-8" />
-	<script type='text/javascript' src='filereader.js'></script>
+	
 	<style type='text/css'>
-	#dropbox {padding:20px;  border: solid 1px green; }
-	#dropbox.drag { border: solid 1px red; }
+	#dropbox { padding:20px; height: 50px;  border: solid 3px green; }
+	#dropbox.drag { border: solid 3px red; }
 	#preview { margin-top:10px; }
-	#preview>div { border: solid 2px; margin:20px; padding:10px;}
+	#preview .group { border: solid 2px #ddd; margin:20px 3px; padding:10px 3px;}
 	#preview pre { margin:20px 0; border: solid 2px #d88; }
 	#preview pre.done { border-color: #8d8; }
- 
+ 	#preview .progress { background-color:#99f; width:1%; height: 10px; }
+ 	#previewtemplate { display:none; }
 	</style>
 	
-
+	<script type='text/javascript' src='filereader.js'></script>
+	<script type='text/javascript' src='fileupload.js'></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
 </head>
 
 <body>
@@ -22,9 +25,13 @@
   <input type="file" id="fileElem" multiple />
   <div id='dropbox'>Drag and drop files from your desktop here</div>
 </form>
+
+
 <div id="fileList">
-  <div id='preview'></div>
+  <div id='preview'>
+  </div>
 </div>
+
 <script type='text/javascript'>
 
 function log() {
@@ -35,16 +42,38 @@ var fileInput = document.getElementById('fileElem');
 var dropbox = document.getElementById("dropbox");
 var preview = document.getElementById("preview");
 
+var uploadopts = {
+	data: {
+		"name": "value"
+	},
+	url: "upload.php",
+	onload: function(e) {
+		log("loaded", e);
+	},
+	onprogress: function(e, file, percentage) {
+		log("progress", e, percentage);
+		var file = document.getElementById("group_" + file.extra.groupID + "_file_" + file.extra.fileID);
+		file.childNodes[1].style["width"] = percentage + "%";
+	},
+	onerror: function(e) {
+		log("error", e);
+	}
+};
+
+
 var opts = {
 	dragClass: 'drag',
 	on: {
 		load: function(e, file) {
-			var filePre = document.getElementById("group_" + file.extra.groupID + "_file_" + file.extra.fileID);
+			var fileDiv = document.getElementById("group_" + file.extra.groupID + "_file_" + file.extra.fileID);
 			if (file.type.indexOf("image/") != -1) {
 				var div = document.createElement("div");
 				div.innerHTML = "<img src='" + e.target.result + "' alt='"+file.name+"' />";
-				filePre.appendChild(div);	
+				fileDiv.appendChild(div);
 			}
+			
+			send(file, uploadopts);
+			
 			filePre.className = 'done';
 		},
 		loadstart: function(e) {
@@ -60,11 +89,10 @@ var opts = {
 		
 		},
 		groupstart: function(group) {
-			var data = document.createElement("div");
-			data.innerHTML = groupTemplate(group.groupID, group.files);
-			preview.appendChild(data);
+			$(preview).append(groupTemplate(group.groupID, group.files));
 		},
 		groupend: function(group) {
+			
 			var end = document.createElement("div");
 			end.innerHTML = "Ended: " + (new Date());
 			document.getElementById("group_" + group.groupID).appendChild(end);
@@ -73,14 +101,19 @@ var opts = {
 };
 
 function groupTemplate(groupID, files) {
-	var start = "<div id='group_" + groupID + "'>Group: " + groupID + " (" + files.length + " files)<br />Started: " + (new Date());
-	
+
+	var start = "<div id='group_" + groupID + "' class='group'>Group: " + groupID + " (" + files.length + " files)<br />Started: " + (new Date());	
 	var html = [];
 	for (var i = 0; i < files.length; i++) {
 		var file = files[i];
-		html.push("<pre id='group_" + groupID + "_file_" + file.extra.fileID + "'>");
+		var id = "group_" + groupID + "_file_" + file.extra.fileID;
+		
+		html.push("<div id='"+id+"'>");
+		html.push("<pre>");
 		html.push(JSON.stringify(file, null, '\t'));
 		html.push("</pre>");
+		html.push("<div class='progress'></div>");
+		html.push("</div>");
 	}
 	
 	return  start + html.join('') + "</div>";
