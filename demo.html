@@ -4,14 +4,27 @@
 	<meta charset="utf-8" />
 	
 	<style type='text/css'>
+	
+  	body { font-family: "Helvetica Neue", Arial, Helvetica, sans-serif; color:#333; }
+	h1,h2,h3 { font-weight: normal; color: #111; }
+
+	h1 { font-size: 2em; line-height: 1; margin-bottom: 0.5em; }
+	h2 { font-size: 1.5em; margin-bottom: 0.75em; }
+	h3 { font-size: 1.25em; line-height: 1; margin-bottom: 1em; }
+
 	#dropbox { padding:20px; height: 50px;  border: solid 3px green; }
 	#dropbox.drag { border: solid 3px red; }
-	#preview { margin-top:10px; }
-	#preview .group { border: solid 2px #ddd; margin:20px 3px; padding:10px 3px;}
-	#preview pre { margin:20px 0; border: solid 2px #d88; }
-	#preview pre.done { border-color: #8d8; }
- 	#preview .progress { background-color:#99f; width:1%; height: 10px; }
- 	#previewtemplate { display:none; }
+	
+	#file-list { margin-top:10px; }
+	#file-list li { margin:10px 0; list-style: none; }
+	#file-list .group { font-size:1.1em; color:#666; border-bottom: dashed 1px #999; }
+	#file-list pre { margin:20px 0; border: solid 2px #8d8; display:none; }
+	#file-list pre.done { border-color: #8d8; }
+ 	#file-list .progress {  width:150px; margin:5px 0; }
+ 	#file-list .progress div { width: 1%; height:10px; background-color:#99f; }
+ 	
+ 	.filename {  }
+ 	
 	</style>
 	
 	<script type='text/javascript' src='filereader.js'></script>
@@ -21,16 +34,16 @@
 
 <body>
 
-<form>
-  <input type="file" id="fileElem" multiple />
-  <div id='dropbox'>Drag and drop files from your desktop here</div>
+<h1>FileReader.JS - Local File Access and Upload</h1>
+<h2>Source: <a href='http://github.com/bgrins/filereader.js'>http://github.com/bgrins/filereader.js</a></h2>
+
+<form id='file-form' method="post" enctype="multipart/form-data">
+	<input type="file" id="fileElem" multiple />
+	<div id='dropbox'>Drag and drop files from your desktop here</div>
 </form>
 
-
-<div id="fileList">
-  <div id='preview'>
-  </div>
-</div>
+<ul id='file-list'>
+</ul>
 
 <script type='text/javascript'>
 
@@ -38,9 +51,9 @@ function log() {
 	if (console) { console.log(Array.prototype.slice.call(arguments)); }
 };
 
-var fileInput = document.getElementById('fileElem');
+var fileInput = document.getElementById("fileElem");
 var dropbox = document.getElementById("dropbox");
-var preview = document.getElementById("preview");
+var filelist = document.getElementById("file-list");
 
 var uploadopts = {
 	data: {
@@ -51,9 +64,8 @@ var uploadopts = {
 		log("loaded", e);
 	},
 	onprogress: function(e, file, percentage) {
-		log("progress", e, percentage);
-		var file = document.getElementById("group_" + file.extra.groupID + "_file_" + file.extra.fileID);
-		file.childNodes[1].style["width"] = percentage + "%";
+		var id = "group_" + file.extra.groupID + "_file_" + file.extra.fileID;
+		$("#" + id).find(".progress div").css("width", percentage + "%");
 	},
 	onerror: function(e) {
 		log("error", e);
@@ -67,14 +79,16 @@ var opts = {
 		load: function(e, file) {
 			var fileDiv = document.getElementById("group_" + file.extra.groupID + "_file_" + file.extra.fileID);
 			if (file.type.indexOf("image/") != -1) {
-				var div = document.createElement("div");
-				div.innerHTML = "<img src='" + e.target.result + "' alt='"+file.name+"' />";
-				fileDiv.appendChild(div);
+				var img = new Image();
+				img.onload = function() {
+					fileDiv.appendChild(resizeImage(img));
+				};
+				img.src = e.target.result;
 			}
 			
 			send(file, uploadopts);
 			
-			filePre.className = 'done';
+			fileDiv.className = 'done';
 		},
 		loadstart: function(e) {
 			
@@ -89,39 +103,74 @@ var opts = {
 		
 		},
 		groupstart: function(group) {
-			$(preview).append(groupTemplate(group.groupID, group.files));
+			$(filelist).append(groupTemplate(group.groupID, group.files));
 		},
 		groupend: function(group) {
-			
-			var end = document.createElement("div");
-			end.innerHTML = "Ended: " + (new Date());
-			document.getElementById("group_" + group.groupID).appendChild(end);
+			$("#group_" + group.groupID).append(
+				"(Time to load: " + (group.ended - group.started) + "ms)"
+			);
 		}
 	}
 };
 
 function groupTemplate(groupID, files) {
 
-	var start = "<div id='group_" + groupID + "' class='group'>Group: " + groupID + " (" + files.length + " files)<br />Started: " + (new Date());	
+		
 	var html = [];
 	for (var i = 0; i < files.length; i++) {
 		var file = files[i];
 		var id = "group_" + groupID + "_file_" + file.extra.fileID;
 		
-		html.push("<div id='"+id+"'>");
-		html.push("<pre>");
-		html.push(JSON.stringify(file, null, '\t'));
-		html.push("</pre>");
-		html.push("<div class='progress'></div>");
-		html.push("</div>");
+		html.push(
+			"<li id='" + id + "'>" + 
+				"<span class='filename'>" + file.name + "</span> " +
+				"<span class='details'><a href='#'>(show details)</a></span>" +
+				"<pre>" + JSON.stringify(file, null, '\t') + "</pre>" +
+				"<div class='progress'><div></div></div>" +
+			"</li>"
+		);
 	}
 	
-	return  start + html.join('') + "</div>";
+	var start = "<li id='group_" + groupID + "' class='group'>Group: " + groupID + " (" + files.length + " files) </li>";
+	
+	return  start + html.join('');
 }
 
 FileReaderJS.setupInput(fileInput, opts);
 FileReaderJS.setupDrop(dropbox, opts);
 
+
+$("#file-list").delegate(".details", "click", function() { 
+	$(this).closest("li").find("pre").toggle('fast');
+	return false;
+});
+
+
+function resizeImage(img) {
+	var MAX_WIDTH = 150;
+	var MAX_HEIGHT = 150;
+	var width = img.width;
+	var height = img.height;
+	 
+	if (width > height) {
+	  if (width > MAX_WIDTH) {
+	    height *= MAX_WIDTH / width;
+	    width = MAX_WIDTH;
+	  }
+	} else {
+	  if (height > MAX_HEIGHT) {
+	    width *= MAX_HEIGHT / height;
+	    height = MAX_HEIGHT;
+	  }
+	}
+	
+	var canvas = document.createElement("canvas");
+	canvas.width = width;
+	canvas.height = height;
+	var ctx = canvas.getContext("2d");
+	ctx.drawImage(img, 0, 0, width, height);
+	return canvas;
+}
 </script>
 </body>
 </html>
