@@ -50,7 +50,8 @@ Parameters to events:
 	group: simple grouping of files.  Each time a change event or drop even happens and a FileList is created, all of these files are stored inside a group object.
 		groupID: a generated int id for this group
 		files: the FileList associated with the group
-		
+		started: the Date the group was recieved as input
+		ended: the Date all files in the group finished loading
 	
 What it isn't:
 * Completely cross browser - Chrome 6+, Firefox 3.6+, are the only current versions that support the File API. Safari 5.*+ (future releases) are planning on it.
