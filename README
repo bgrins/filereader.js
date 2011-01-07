@@ -1,5 +1,6 @@
 filereader.js
 A small library independant wrapper for the JavaScript FileReader interface
+Developed in conjunction with a project of mine, http://instantsprite.com, a browser based CSS Sprite Generator which required this functionality.
 
 See http://dev.w3.org/2006/webapi/FileAPI/#FileReader-interface for basic information
 See http://dev.w3.org/2006/webapi/FileAPI/#event-summary for details on Options/on.* callbacks
