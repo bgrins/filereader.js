@@ -46,7 +46,6 @@
 </ul>
 
 <script type='text/javascript'>
-
 function log() {
 	if (console) { console.log(Array.prototype.slice.call(arguments)); }
 };
@@ -55,40 +54,22 @@ var fileInput = document.getElementById("fileElem");
 var dropbox = document.getElementById("dropbox");
 var filelist = document.getElementById("file-list");
 
-var uploadopts = {
-	data: {
-		"name": "value"
-	},
-	url: "upload.php",
-	onload: function(e) {
-		log("loaded", e);
-	},
-	onprogress: function(e, file, percentage) {
-		var id = "group_" + file.extra.groupID + "_file_" + file.extra.fileID;
-		$("#" + id).find(".progress div").css("width", percentage + "%");
-	},
-	onerror: function(e) {
-		log("error", e);
-	}
-};
-
-
 var opts = {
 	dragClass: 'drag',
 	on: {
 		load: function(e, file) {
-			var fileDiv = document.getElementById("group_" + file.extra.groupID + "_file_" + file.extra.fileID);
+		
+			var fileDiv = $("#group_" + file.extra.groupID + "_file_" + file.extra.fileID).addClass("done");
+			
+			// Create a thumbnail and add it to the output if it is an image
 			if (file.type.indexOf("image/") != -1) {
 				var img = new Image();
 				img.onload = function() {
-					fileDiv.appendChild(resizeImage(img));
+					fileDiv.append(resizeImage(img));
 				};
 				img.src = e.target.result;
 			}
 			
-			send(file, uploadopts);
-			
-			fileDiv.className = 'done';
 		},
 		loadstart: function(e) {
 			
@@ -114,17 +95,16 @@ var opts = {
 };
 
 function groupTemplate(groupID, files) {
-
-		
 	var html = [];
 	for (var i = 0; i < files.length; i++) {
 		var file = files[i];
 		var id = "group_" + groupID + "_file_" + file.extra.fileID;
 		
 		html.push(
-			"<li id='" + id + "'>" + 
+			"<li id='" + id + "' data-fileid='" + file.extra.fileID + "' data-groupid='"+groupID+"'>" + 
 				"<span class='filename'>" + file.name + "</span> " +
-				"<span class='details'><a href='#'>(show details)</a></span>" +
+				"<span class='details'><a href='#'>(show details)</a></span> " +
+				"<span class='send'><a href='#'>upload to server</a></span>" +
 				"<pre>" + JSON.stringify(file, null, '\t') + "</pre>" +
 				"<div class='progress'><div></div></div>" +
 			"</li>"
@@ -145,6 +125,41 @@ $("#file-list").delegate(".details", "click", function() {
 	return false;
 });
 
+$("#file-list").delegate(".send", "click", function() {
+	var li = $(this).closest("li");
+	var fileID = parseInt(li.attr("data-fileid"), 10);
+	var groupID = parseInt(li.attr("data-groupid"), 10);
+	
+	var file = FileReaderJS.output[groupID].files[fileID];
+	sendFile(file, li);
+	return false;
+});
+
+
+function sendFile(file, li) {
+	var sendMessage = li.find(".send");
+	sendMessage.html("Uploading...");
+
+	var uploadopts = {
+		data: {
+			"name": "value"
+		},
+		url: "upload.php",
+		onload: function(e) {
+			log("loaded", e);
+			sendMessage.html("Done!");
+		},
+		onprogress: function(e, file, percentage) {
+			li.find(".progress div").css("width", percentage + "%");
+		},
+		onerror: function(e) {
+			log("error", e);
+			sendMessage.html("Error!");
+		}
+	};
+
+	send(file, uploadopts);
+}
 
 function resizeImage(img) {
 	var MAX_WIDTH = 150;
