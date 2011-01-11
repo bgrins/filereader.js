@@ -27,8 +27,7 @@
 	</style>
 	
 	<script type='text/javascript' src='filereader.js'></script>
-	<script type='text/javascript' src='fileupload.js'></script>
-
+	
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
 	<script type='text/javascript' src='fileuploader.js'></script>
 </head>
@@ -39,7 +38,8 @@
 <h2>Source: <a href='http://github.com/bgrins/filereader.js'>http://github.com/bgrins/filereader.js</a></h2>
 
 <form id='file-form' method="post" enctype="multipart/form-data">
-	<input type="file" id="file-input" multiple />
+	<input type="file" id="file-input" name="file-input" multiple />
+	<input type="hidden" name="extra-data" multiple />
 	<div id='dropzone'>
 		Drag and drop files from your desktop here (or select them from the input above).<br />
 		They will be read in browser, and can also be uploaded.
@@ -50,10 +50,6 @@
 </ul>
 
 <script type='text/javascript'>
-function log() {
-	if (console) { console.log(Array.prototype.slice.call(arguments)); }
-};
-
 
 // Initialize the FileUploader plugin - feel free to omit options if the default is what you want
 FileUploader(document.getElementById("file-form"), {
