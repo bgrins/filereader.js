@@ -22,12 +22,13 @@ See http://github.com/bgrins/filereader.js for documentation
 		opts.onload = opts.onload || function() { };
 		opts.url = opts.url || "upload.php";
 		opts.data = opts.data || { };
+		opts.fileInputName = opts.fileInputName || "file";
 		
 		
 		// Generate FormData object
 		var fd = new FormData();
 		for (var d in opts.data) { fd.append(d, opts[d]); }
-		fd.append("image", file);
+		fd.append(opts.fileInputName, file);
 		
 		// Send off request
 		var xhr = new XMLHttpRequest();
