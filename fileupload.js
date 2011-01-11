@@ -1,5 +1,5 @@
 /*
-filereader.js - a lightweight wrapper for FormData file uploads
+fileupload.js - a lightweight wrapper for FormData file uploads
 Open source code under MIT license: http://www.opensource.org/licenses/mit-license.php
 Author: Brian Grinstead
 
@@ -24,7 +24,7 @@ See http://github.com/bgrins/filereader.js for documentation
 		opts.data = opts.data || { };
 		
 		
-		// Generate FileData object
+		// Generate FormData object
 		var fd = new FormData();
 		for (var d in opts.data) { fd.append(d, opts[d]); }
 		fd.append("image", file);
