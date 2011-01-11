@@ -18,6 +18,7 @@ global.FileUploader.opts = {
 	fileinput: 'file-input',
 	dropzone: 'dropzone',
 	debug: true,
+	maxSize: 512000,
 	errors: {
 		fileTooLarge: '{filename} is too large.'
 	}
@@ -45,7 +46,14 @@ function uploader(form, opts) {
 		var groupID = parseInt(li.attr("data-groupid"), 10);
 		
 		var file = FileReaderJS.output[groupID].files[fileID];
-		sendFile(file, li);
+		
+		if (file.size < o.maxSize) {
+			sendFile(file, li);
+		}
+		else {
+			li.append(o.errors.fileTooLarge.replace("{filename}", file.name));
+		}
+		
 		return false;
 	});
 	
@@ -68,7 +76,7 @@ function uploader(form, opts) {
 			},
 			beforestart: function(file) {
 				// only read images
-				//return (file.type.indexOf("image/") != -1);
+				return (file.type.indexOf("image/") != -1) && (file.size < o.maxSize);
 			},
 			groupstart: function(group) {
 				log("Starting", group.files);
