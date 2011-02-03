@@ -147,28 +147,21 @@ function groupTemplate(groupID, files) {
 	return  start + html.join('');
 }
 
-function getThumbnail(img, MAX_WIDTH, MAX_HEIGHT) {
-
+function getThumbnail(img, maxWidth, maxHeight) {
 	var canvas = document.createElement("canvas");
-	var ctx = canvas.getContext("2d");	 
+	var ctx = canvas.getContext("2d");
+	
 	var ratio = 1;
-
-	if(img.width > MAX_HEIGHT)
-	    ratio = MAX_WIDTH / img.width;
-	else if(img.height > MAX_HEIGHT)
-	    ratio = MAX_HEIGHT / img.height;
+	if (img.width > maxWidth) {
+	    ratio = maxWidth / img.width;
+	}
+	if ((img.height * ratio) > maxHeight) {
+	    ratio = maxHeight / img.height;
+	}
+	canvas.width = img.width * ratio;
+	canvas.height = img.height * ratio;
 	
-	
-    canvas.width = img.width * ratio;
-   	canvas.height = img.height * ratio;
-    ctx.drawImage(
-    	img, 
-    	0, 0, 
-    	img.width, img.height, 
-    	0, 0, 
-    	canvas.width, canvas.height
-    );
-    
+	ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, canvas.width, canvas.height);
 	return canvas;
 }
 	
