@@ -97,7 +97,8 @@ See http://github.com/bgrins/filereader.js for documentation
 			file.extra = {
 				nameNoExtension: file.name.substring(0, file.name.lastIndexOf('.')),
 				extension: file.name.substring(file.name.lastIndexOf('.') + 1),
-				fileID: getFileID(),
+				fileID: i,
+				uniqueID: getUniqueID(),
 				groupID: groupID,
 				prettySize: prettySize(file.size)
 			};
@@ -232,8 +233,8 @@ See http://github.com/bgrins/filereader.js for documentation
 		}
 	})(0);
 	
-	// getFileID: generate a unique int ID for files
-	var getFileID = (function(id) {
+	// getUniqueID: generate a unique int ID for files
+	var getUniqueID = (function(id) {
 		return function() {
 			return id++;
 		}
