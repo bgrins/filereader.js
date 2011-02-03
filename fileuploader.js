@@ -33,6 +33,7 @@ function uploader(form, opts) {
 	var dropzone = $(form).find("#" + o.dropzone);
 	var filelist = $("<ul class='file-list'></ul>").appendTo(form);
 	
+	
 	log("creating uploader", form, o);
 	
 	$(filelist).delegate(".details", "click", function() { 
@@ -185,7 +186,7 @@ function doUpload(file, opts) {
     
     // Generate FormData object
     var fd = new FormData();
-    for (var d in opts.data) { fd.append(d, opts[d]); }
+    for (var d in opts.data) { fd.append(d, opts.data[d]); }
     fd.append(opts.fileInputName, file);
     
     // Send off request
