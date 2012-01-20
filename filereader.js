@@ -10,7 +10,11 @@ See http://github.com/bgrins/filereader.js for documentation
 	
 	var FileReader = global.FileReader;
 	var FileReaderJS = global.FileReaderJS = { 
-		enabled: false,
+		enabled: false,		
+		setupInput: setupInput,
+		setupDrop: setupDrop,
+		setupClipboard: setupClipboard,		
+		
 		opts: {
 			dragClass: false,
 			accept: false,
@@ -34,7 +38,22 @@ See http://github.com/bgrins/filereader.js for documentation
 		},
 		output: []
 	};
-	var fileReaderEvents = ['loadstart', 'progress', 'load', 'abort', 'error', 'loadend'];
+	var fileReaderEvents = ['loadstart', 'progress', 'load', 'abort', 'error', 'loadend'];	
+		
+	// setup jQuery plugin if available
+	if (typeof(jQuery) !== "undefined") {
+		jQuery.fn.fileReaderJS = function(opts) {
+			return this.each(function() {
+				$(this).is("input") ? setupInput(this, opts) : setupDrop(this, opts);
+			});
+		};
+		
+		jQuery.fn.fileClipboard = function(opts) {
+			return this.each(function() {
+				setupClipboard(this, opts);
+			});
+		};		
+	}
 	
 	if (!FileReader) {
 		// Not all browsers support the FileReader interface.  Return with the enabled bit = false
@@ -42,6 +61,10 @@ See http://github.com/bgrins/filereader.js for documentation
 	}
 	
 	function setupClipboard(element, opts) {
+		if (!FileReaderJS.enabled) {
+			return;
+		}
+		
 		var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
 		element.addEventListener("paste", onpaste, false);
 		
@@ -71,6 +94,10 @@ See http://github.com/bgrins/filereader.js for documentation
 		
 	// setupInput: bind the 'change' event to an input[type=file]
 	function setupInput(input, opts) {
+		if (!FileReaderJS.enabled) {
+			return;
+		}
+	
 		var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
 		
 		input.addEventListener("change", inputChange, false);
@@ -81,6 +108,10 @@ See http://github.com/bgrins/filereader.js for documentation
 	
 	// setupDrop: bind the 'drop' event for a DOM element
 	function setupDrop(dropbox, opts) {
+		if (!FileReaderJS.enabled) {
+			return;
+		}	
+	
 		var instanceOptions = extend(extend({}, FileReaderJS.opts), opts),
 			dragClass = instanceOptions.dragClass;
 		
@@ -270,25 +301,5 @@ See http://github.com/bgrins/filereader.js for documentation
 	
 	// The interface is supported, bind the FileReaderJS callbacks
 	FileReaderJS.enabled = true;
-	FileReaderJS.setupInput = setupInput;
-	FileReaderJS.setupDrop = setupDrop;
-	FileReaderJS.setupClipboard = setupClipboard;
-	
-	
-	// setup jQuery plugin if available
-	if (typeof(jQuery) !== "undefined") {
-		jQuery.fn.fileReaderJS = function(opts) {
-			return this.each(function() {
-				$(this).is("input") ? setupInput(this, opts) : setupDrop(this, opts);
-			});
-		};
-		
-		jQuery.fn.fileClipboard = function(opts) {
-			return this.each(function() {
-				setupClipboard(this, opts);
-			});
-		};
-		
-	}
 	
 })(this);
