@@ -41,6 +41,34 @@ See http://github.com/bgrins/filereader.js for documentation
 		return;
 	}
 	
+	function setupClipboard(element, opts) {
+		var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
+		element.addEventListener("paste", onpaste, false);
+		
+		function onpaste(ev) {
+			var files = [];
+			var items = ev.clipboardData.items || [];
+			
+			for (var i = 0; i < items.length; i++) {
+				var file = items[i].getAsFile();			
+				if (file) {		
+					var matches = new RegExp("image/\(.*\)").exec(file.type);
+					if (matches) {														
+						var extension = matches[1];
+						file.name = "clipboard" + i + "." + extension;
+						files.push(file);
+					}
+				}
+			}
+			
+			if (files.length) {			
+				processFileList(files, instanceOptions);
+				ev.preventDefault();
+				ev.stopPropagation();
+			}
+		}
+	};        
+		
 	// setupInput: bind the 'change' event to an input[type=file]
 	function setupInput(input, opts) {
 		var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
@@ -244,6 +272,8 @@ See http://github.com/bgrins/filereader.js for documentation
 	FileReaderJS.enabled = true;
 	FileReaderJS.setupInput = setupInput;
 	FileReaderJS.setupDrop = setupDrop;
+	FileReaderJS.setupClipboard = setupClipboard;
+	
 	
 	// setup jQuery plugin if available
 	if (typeof(jQuery) !== "undefined") {
@@ -252,6 +282,13 @@ See http://github.com/bgrins/filereader.js for documentation
 				$(this).is("input") ? setupInput(this, opts) : setupDrop(this, opts);
 			});
 		};
+		
+		jQuery.fn.fileClipboard = function(opts) {
+			return this.each(function() {
+				setupClipboard(this, opts);
+			});
+		};
+		
 	}
 	
 })(this);
