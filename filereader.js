@@ -16,7 +16,7 @@ See http://github.com/bgrins/filereader.js for documentation
         setupClipboard: setupClipboard,
 
         opts: {
-            dragClass: false,
+            dragClass: "drag",
             accept: false,
             readAsMap: {
                 'image/*': 'DataURL',

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	
+	<link rel="stylesheet" href="docs/bootstrap.css" />
+	<style type='text/css'>
+
+	html, body { background-color: #eee; }
+	body { padding-top: 15px; }
+
+	.container-fluid > .sidebar{ top:20px; left:auto; right:20px;width:160px; position:fixed; height: 80%; min-height: 40px; overflow-y: auto;}
+	.container-fluid > .content{ margin-right:240px; margin-left:0;}
+	
+	#dropzone { padding:20px; height: 50px;  border: solid 3px #050; }
+	#dropzone.drag { border: solid 3px #0f0; }
+	
+	#file-list:empty:before { content: "Add a file using one of the methods to the left and it will show up here."; display:block;  }
+	#file-list { margin-top:10px; }
+	#file-list li { margin:10px 0; list-style: none; }
+	#file-list .group { font-size:1.1em; color:#666; border-bottom: dashed 1px #999; }
+	#file-list pre { margin:20px 0; border: solid 2px #8d8; display:none; }
+	#file-list pre.done { border-color: #8d8; }
+ 	#file-list .progress {  width:150px; margin:5px 0; }
+ 	#file-list .progress div { width: 1%; height:10px; background-color:#99f; }
+ 	
+ 	.filename {  }
+	</style>
+	
+	<script type='text/javascript' src='filereader.js'></script>
+	<script src="docs/jquery-1.7.1.js"></script>
+</head>
+
+<body>
+
+    <div class="container-fluid">
+	  
+      <div class="content">
+        <div class="page-header">
+          <h1>FileReader.js <small> - read files with JavaScript!</small></h1>
+		  
+        </div>
+        <div class="row">
+			<div class="offset1">
+				<h2>About</h2>
+				<p>
+				FileReader.js is intended to make accessing files via the <a href='http://dev.w3.org/2006/webapi/FileAPI/#FileReader-interface'>FileReader interface</a> easier.  Read more about <a href='http://www.briangrinstead.com/blog/filereaderjs'>the motivation behind filereader.js</a>.
+				</p>
+			</div>
+		</div>
+        <div class="row">
+			<div class="offset1">
+				<h2>Source Code</h2>
+				<p>Browse the project source: <a href='http://github.com/bgrins/filereader.js'>http://github.com/bgrins/filereader.js</a></p>
+			</div>
+		</div>
+        <div class="row">
+			<div class="offset1">
+				<h2>Usage</h2>
+				<p>
+					<strong>There is no jQuery or any other library dependancy for FileReader.js</strong>.  It will work with a simple call to 
+<pre class="prettyprint">
+	&lt;script type='text/javascript' src='filereader.js'&gt;&lt;/script&gt;
+</pre>
+<pre class="prettyprint">
+	FileReaderJS.setupInput(document.getElementById('file-input'), opts);
+	FileReaderJS.setupDrop(document.getElementById('dropzone'), opts);
+	FileReaderJS.setupClipboard(document.body, opts);
+</pre>
+				</p>
+				<p>
+					IF you do use jQuery, you could use it as such:
+				</p>
+<pre class="prettyprint">
+	$("#file-input, #dropzone").fileReaderJS(opts);
+	$("body").fileClipboard(opts);
+</pre>
+			</div>
+		</div>
+        <div class="row">
+			<div class="offset1">
+				<h2>Browser Support</h2>
+				<p>
+					<ul>
+						<li>Internet Explorer: <span class='label success'>10+</span></li>
+						<li>Firefox: <span class='label success'>10+</span></li>
+						<li>Chrome: <span class='label success'>13+</span></li>
+						<li>Safari: <span class='label important'>no support</span></li>
+					</ul>
+					For more information, see the <a href='http://caniuse.com/#feat=fileapi'>Full Browser Support Graph for File API</a>
+				</p>
+			</div>
+		</div>
+        <div class="row">
+			<div class="offset1">
+				<h2>Different Input Types</h2>
+				<p>There are three ways to accept input - you can pick and choose any of these.</p>
+			</div>
+		</div>
+        <div class="row">
+			<ul class='offset2'>
+				<li class=''>
+					<h3>File Input</h3>
+					
+					<p>You can access files that users select via an input[type=file].  Try it out below:</p>
+					<form id='file-form' method="post" enctype="multipart/form-data">
+						<input type="hidden" name="extra-data" multiple />
+						<input type="file" id="file-input" name="file-input" multiple />
+					</form>
+					
+				</li>
+				<li class="">
+					<h3>Drop Zone</h3>
+					
+					<p id='dropzone'>
+						Drag and drop files from your desktop here (or select them from the input above).<br />
+						They will be read in browser, and can also be uploaded.
+					</p>
+					
+				</li>
+				<li class="">
+					<h3>Clipboard</h3>
+					<p>
+						In some browsers, you can paste images onto a page.  Go ahead and 'print screen' then press Ctrl+V to try that out!
+					</p>
+				</li>
+			</ul>
+		</div>
+			
+      </div>
+
+      <div class="sidebar well">
+          <h5>Loaded Files</h5>
+			<ul id='file-list'>
+			</ul>
+      </div>
+      <footer>
+        <p></p>
+      </footer>
+
+    </div>
+	
+	<script type='text/javascript'>
+
+	var filelist = document.getElementById("file-list");
+		
+	function groupTemplate(groupID, files) {
+		var html = [];
+		for (var i = 0; i < files.length; i++) {
+			var file = files[i];
+			var id = "group_" + groupID + "_file_" + file.extra.fileID;
+			
+			html.push(
+				"<li id='" + id + "' data-fileid='" + file.extra.fileID + "' data-groupid='"+ groupID +"'>" + 
+					"<span class='filename'>" + file.name + "</span> " +
+					"<span class='details'><a href='#'>(show details)</a></span> " +
+					"<pre>" + JSON.stringify(file, null, '\t') + "</pre>" +
+					"<div class='progress'><div></div></div>" +
+				"</li>"
+			);
+		}
+		
+		var start = "<li id='group_" + groupID + "' class='group'>Group: " + groupID + " (" + files.length + " files) </li>";
+		
+		return  start + html.join('');
+	}
+
+	var opts = {
+		on: {
+			load: function(e, file) {
+				
+				/*var fileDiv = $("#group_" + file.extra.groupID + "_file_" + file.extra.fileID).addClass("done");
+				
+				// Create a thumbnail and add it to the output if it is an image
+				var img = new Image();
+				img.onload = function() {
+					fileDiv.append(getThumbnail(img, o.thumbnail[0], o.thumbnail[1]));
+				};
+				img.src = e.target.result;
+				*/
+			},
+			groupstart: function(group) {
+				$(filelist).append(groupTemplate(group.groupID, group.files));
+			},
+			groupend: function(group) {
+				//$("#group_" + group.groupID).append(
+				//	"(Time to load: " + (group.ended - group.started) + "ms)"
+				//);
+			}
+		}
+	};
+	
+	FileReaderJS.setupInput(document.getElementById('file-input'), opts);
+	FileReaderJS.setupDrop(document.getElementById('dropzone'), opts);
+	FileReaderJS.setupClipboard(document.body, opts);
+	
+	</script>
+</body>
+</html>
