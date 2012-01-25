@@ -70,7 +70,8 @@ See http://github.com/bgrins/filereader.js for documentation
 
         function onpaste(ev) {
             var files = [];
-            var items = ev.clipboardData.items || [];
+            var clipboardData = ev.clipboardData || {};            
+            var items = clipboardData.items || [];
 
             for (var i = 0; i < items.length; i++) {
                 var file = items[i].getAsFile();
