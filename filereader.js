@@ -262,20 +262,22 @@ See http://github.com/bgrins/filereader.js for documentation
     }
 
     // hasClass: does an element have the css class?
-    function hasClass(ele,cls) {
-        return ele.className.match(new RegExp('(\\s|^)'+cls+'(\\s|$)'));
+    function hasClass(el, name) {
+        return new RegExp("(?:^|\\s+)" + name + "(?:\\s+|$)").test(el.className);
     }
 
     // addClass: add the css class for the element.
-    function addClass(ele,cls) {
-        if (!hasClass(ele,cls)) ele.className += " "+cls;
+    function addClass(el, name) {
+        if (!hasClass(el, name)) {
+          el.className = el.className ? [el.className, name].join(' ') : name;
+        }
     }
 
     // removeClass: remove the css class from the element.
-    function removeClass(ele,cls) {
-        if (hasClass(ele,cls)) {
-            var reg = new RegExp('(\\s|^)'+cls+'(\\s|$)');
-            ele.className=ele.className.replace(reg,' ');
+    function removeClass(el, name) {
+        if (hasClass(el, name)) {
+          var c = el.className;
+          el.className = c.replace(new RegExp("(?:^|\\s+)" + name + "(?:\\s+|$)", "g"), " ").replace(/^\s\s*/, '').replace(/\s\s*$/, '');
         }
     }
 
