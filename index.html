@@ -9,8 +9,8 @@
 	html, body { background-color: #eee; }
 	body { padding-top: 15px; }
 
-	.container-fluid > .sidebar{ top:20px; left:auto; right:20px;width:160px; position:fixed; height: 80%; min-height: 40px; overflow-y: auto;}
-	.container-fluid > .content{ margin-right:240px; margin-left:0;}
+	.container-fluid > .sidebar{ top:20px; left:auto; right:20px;width:260px; position:fixed; bottom:20px; min-height: 40px; overflow-y: auto;}
+	.container-fluid > .content{ margin-right:340px; margin-left:0;}
 	
 	#dropzone { padding:20px; border: solid 3px #050; text-align: center;}
 	#dropzone.drag { border: solid 3px #0f0; }
@@ -18,17 +18,18 @@
 	#file-list:empty:before { content: "Add a file using one of the methods to the left and it will show up here."; display:block;  }
 	#file-list { margin-top:10px; }
 	#file-list li { margin:10px 0; list-style: none; }
+	#file-list li.error { color: red; }
+	#file-list li.error a.btn { display:none; }
 	#file-list .group { font-size:1.1em; color:#666; border-bottom: dashed 1px #999; }
 	#file-list pre { margin:20px 0; border: solid 2px #8d8; display:none; }
 	#file-list pre.done { border-color: #8d8; }
- 	#file-list .progress {  width:150px; margin:5px 0; }
- 	#file-list .progress div { width: 1%; height:10px; background-color:#99f; }
  	
  	.filename {  }
 	</style>
 	
 	<script type='text/javascript' src='filereader.js'></script>
 	<script src="docs/jquery-1.7.1.js"></script>
+	<script src="docs/bootstrap-modal.js"></script>
 </head>
 
 <body>
@@ -147,7 +148,8 @@
 	<script type='text/javascript'>
 
 	var filelist = document.getElementById("file-list");
-		
+            
+
 	function groupTemplate(groupID, files) {
 		var html = [];
 		for (var i = 0; i < files.length; i++) {
@@ -157,9 +159,10 @@
 			html.push(
 				"<li id='" + id + "' data-fileid='" + file.extra.fileID + "' data-groupid='"+ groupID +"'>" + 
 					"<span class='filename'>" + file.name + "</span> " +
-					"<span class='details'><a href='#'>(show details)</a></span> " +
+                    "<br />" +
+					"<span class='details'><a href='#' class='btn'>details</a></span> " +
+                    "<div class='modal hide'>" + file.name + "<br />" + file.type + "<br /></div>" +
 					"<pre>" + JSON.stringify(file, null, '\t') + "</pre>" +
-					"<div class='progress'><div></div></div>" +
 				"</li>"
 			);
 		}
@@ -172,24 +175,40 @@
 	var opts = {
 		on: {
 			load: function(e, file) {
+				var fileDiv = $("#group_" + file.extra.groupID + "_file_" + file.extra.fileID).addClass("done");
+                
+                if (file.type.match(/image/)) {
+                    // Create a thumbnail and add it to the output if it is an image
+                    var img = new Image();
+                    img.onload = function() {
+                        fileDiv.find(".modal").append(img);
+                        $(img).css("max-width", 300);
+                    };
+                    img.src = e.target.result;
+                }
+                else {
+                    //fileDiv.find(".modal").append($("<div />").text(e.target.result));
+                }
 				
-				/*var fileDiv = $("#group_" + file.extra.groupID + "_file_" + file.extra.fileID).addClass("done");
-				
-				// Create a thumbnail and add it to the output if it is an image
-				var img = new Image();
-				img.onload = function() {
-					fileDiv.append(getThumbnail(img, o.thumbnail[0], o.thumbnail[1]));
-				};
-				img.src = e.target.result;
-				*/
 			},
+			error: function(e, file) {
+				$("#group_" + file.extra.groupID + "_file_" + file.extra.fileID).addClass("error");
+            },
 			groupstart: function(group) {
 				$(filelist).append(groupTemplate(group.groupID, group.files));
+                
+                $(filelist).find(".details a:not(.initialized)").click(function() {
+                    $(this).closest("li").find(".modal").modal('show');
+                })
+                
+                $(filelist).find(".modal:not(.initialized)").addClass("initialized").modal({ show: false }).on("show", function() {
+                
+                });
 			},
 			groupend: function(group) {
-				//$("#group_" + group.groupID).append(
-				//	"(Time to load: " + (group.ended - group.started) + "ms)"
-				//);
+				$("#group_" + group.groupID).append(
+					"(Time to load: " + (group.ended - group.started) + "ms)"
+				);
 			}
 		}
 	};
