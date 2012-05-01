@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	
+	<style type='text/css'>
+	
+  	body { font-family: "Helvetica Neue", Arial, Helvetica, sans-serif; color:#333; }
+	h1,h2,h3 { font-weight: normal; color: #111; }
+	h1 { font-size: 2em; line-height: 1; margin-bottom: 0.5em; }
+	h2 { font-size: 1.5em; margin-bottom: 0.75em; }
+	h3 { font-size: 1.25em; line-height: 1; margin-bottom: 1em; }
+
+	#dropzone { padding:20px; height: 50px;  border: solid 3px green; }
+	#dropzone.drag { border: solid 3px red; }
+	
+	.file-list { margin-top:10px; }
+	.file-list li { margin:10px 0; list-style: none; }
+	.file-list .group { font-size:1.1em; color:#666; border-bottom: dashed 1px #999; }
+	.file-list pre { margin:20px 0; border: solid 2px #8d8; display:none; }
+	.file-list pre.done { border-color: #8d8; }
+ 	.file-list .progress {  width:150px; margin:5px 0; }
+ 	.file-list .progress div { width: 1%; height:10px; background-color:#99f; }
+ 	
+ 	.filename {  }
+ 	
+	</style>
+	
+	<script type='text/javascript' src='../filereader.js'></script>
+	
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+	<script type='text/javascript' src='fileuploader.js'></script>
+</head>
+
+<body>
+
+<h1>FileReader.JS - Local File Access and Upload</h1>
+<h2>Source: <a href='http://github.com/bgrins/filereader.js'>http://github.com/bgrins/filereader.js</a></h2>
+
+<form id='file-form' method="post" enctype="multipart/form-data">
+	<input type="file" id="file-input" name="file-input" multiple />
+	<input type="hidden" name="extra-data" multiple />
+	<div id='dropzone'>
+		Drag and drop files from your desktop here (or select them from the input above).<br />
+		They will be read in browser, and can also be uploaded.
+	</div>
+</form>
+
+<ul id='file-list'>
+</ul>
+
+<script type='text/javascript'>
+
+// Initialize the FileUploader plugin - feel free to omit options if the default is what you want
+FileUploader(document.getElementById("file-form"), {
+	dropzone: 'dropzone',
+	fileinput: 'file-input',
+	thumbnail: [50, 50],
+	dragClass: 'drag'	
+});
+
+</script>
+</body>
+</html>
