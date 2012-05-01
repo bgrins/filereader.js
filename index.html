@@ -18,6 +18,9 @@
 	#file-list:empty:before { content: "Add a file using one of the methods to the left and it will show up here."; display:block;  }
 	#file-list { margin-top:10px; }
 	#file-list li { margin:10px 0; list-style: none; }
+	#file-list li > img { max-width: 30px; max-height: 20px; margin-right: 3px; }
+	#file-list li .modal img { max-width: 400px; max-height: 400px; }
+    
 	#file-list li.error { color: red; }
 	#file-list li.error a.btn { display:none; }
 	#file-list .group { font-size:1.1em; color:#666; border-bottom: dashed 1px #999; }
@@ -182,7 +185,8 @@
                     var img = new Image();
                     img.onload = function() {
                         fileDiv.find(".modal").append(img);
-                        $(img).css("max-width", 300);
+                        
+                        fileDiv.prepend($(img).clone());
                     };
                     img.src = e.target.result;
                 }
