@@ -113,14 +113,6 @@ See http://github.com/bgrins/filereader.js for documentation
             return;
         }
 
-        var instanceOptions = extend(extend({}, FileReaderJS.opts), opts),
-            dragClass = instanceOptions.dragClass;
-
-        dropbox.addEventListener("dragenter", dragenter, false);
-        dropbox.addEventListener("dragleave", dragleave, false);
-        dropbox.addEventListener("dragover", dragover, false);
-        dropbox.addEventListener("drop", drop, false);
-
         var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
         var dragClass = instanceOptions.dragClass;
 
