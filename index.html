@@ -27,12 +27,30 @@
 	#file-list pre { margin:20px 0; border: solid 2px #8d8; display:none; }
 	#file-list pre.done { border-color: #8d8; }
  	
- 	.filename {  }
+    #sync + strong {
+        color: #dec857;
+    }
+    #async + strong {
+        color: #7bde57;
+    }
+    body:after {
+        content: "";
+        display:block;
+        position:fixed;
+        top: -50px;
+        padding: 2px;
+        border-radius: 50%;
+        right:-50px;
+        width: 100px;
+        height: 100px;
+        background: #7bde57;
+    }
+    body.sync:after {
+        background: #dec857;
+    }
+ 	.done .filename { color: #357048; }
 	</style>
 	
-	<script type='text/javascript' src='filereader.js'></script>
-	<script src="docs/jquery-1.7.1.js"></script>
-	<script src="docs/bootstrap-modal.js"></script>
 </head>
 
 <body>
@@ -61,7 +79,7 @@
 			<div class="offset1">
 				<h2>Source Code</h2>
 				<p>
-                <a class='btn primary' href='http://github.com/bgrins/filereader.js'>Project On Github</a>
+                <a class='btn btn-primary' href='http://github.com/bgrins/filereader.js'>Project On Github</a>
                 <a class='btn' href='https://raw.github.com/bgrins/filereader.js/master/filereader.js'>Just the JavaScript</a>
                 </p>
 			</div>
@@ -144,6 +162,16 @@
 
       <div class="sidebar well">
           <h5>Loaded Files</h5>
+            <p>
+            <form class='form'>
+            <fieldset>
+                <div class='controls'>
+                    <label class="radio"><input type='radio' name='load-type' id='sync' /> <strong>Sync</strong> - Using <a target='_blank' href='http://www.w3.org/TR/FileAPI/#FileReaderSync'>FileReaderSync</a></label>
+                    <label class="radio"><input type='radio' name='load-type' id='async' checked='checked' /> <strong>Async</strong> - Using FileReader</label>
+                </div>
+            </fieldset>
+            </form>
+            </p>
 			<ul id='file-list'>
 			</ul>
       </div>
@@ -153,6 +181,9 @@
 
     </div>
 	
+	<script type='text/javascript' src='filereader.js'></script>
+	<script src="docs/jquery-1.7.1.js"></script>
+	<script src="docs/bootstrap.js"></script>
 	<script type='text/javascript'>
 
 	var filelist = document.getElementById("file-list");
@@ -226,6 +257,12 @@
 	FileReaderJS.setupDrop(document.getElementById('dropzone'), opts);
 	FileReaderJS.setupClipboard(document.body, opts);
 	
+    $(function() {
+        $(".sidebar").on('click', 'input', function() {
+            FileReaderJS.sync = $("#sync").is(":checked");
+            $("body").toggleClass("sync", !!FileReaderJS.sync);
+        });
+    });
 	</script>
 </body>
 </html>
