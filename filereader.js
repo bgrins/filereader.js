@@ -1,20 +1,24 @@
-/*
-filereader.js - a lightweight wrapper for common FileReader usage.
-Open source code under MIT license: http://www.opensource.org/licenses/mit-license.php
-Author: Brian Grinstead
-
-See http://github.com/bgrins/filereader.js for documentation
+/*!
+    FileReader.js - a lightweight wrapper for common FileReader usage.
+    Copyright 2012 Brian Grinstead - MIT License.
+    See http://github.com/bgrins/filereader.js for documentation.
 */
 
 (function(global) {
 
     var FileReader = global.FileReader;
+    var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
+    var URL = window.URL || window.webkitURL;
+    var FileReaderSyncSupport = false;
+    var WorkerURL = generateWorkerUrl("self.addEventListener('message',function(e){var data=e.data;try{var reader=new FileReaderSync;postMessage({result:reader[data.readAs](data.file),extra:data.extra,file:data.file})}catch(e){postMessage({result:'error',extra:data.extra,file:data.file})}},false);");
+    var fileReaderEvents = ['loadstart', 'progress', 'load', 'abort', 'error', 'loadend'];
+
     var FileReaderJS = global.FileReaderJS = {
         enabled: false,
         setupInput: setupInput,
         setupDrop: setupDrop,
         setupClipboard: setupClipboard,
-
+        sync: false,
         opts: {
             dragClass: "drag",
             accept: false,
@@ -38,9 +42,8 @@ See http://github.com/bgrins/filereader.js for documentation
         },
         output: []
     };
-    var fileReaderEvents = ['loadstart', 'progress', 'load', 'abort', 'error', 'loadend'];
 
-    // setup jQuery plugin if available
+    // Setup jQuery plugin (if available)
     if (typeof(jQuery) !== "undefined") {
         jQuery.fn.fileReaderJS = function(opts) {
             return this.each(function() {
@@ -55,10 +58,12 @@ See http://github.com/bgrins/filereader.js for documentation
         };
     }
 
+    // Not all browsers support the FileReader interface.  Return with the enabled bit = false.
     if (!FileReader) {
-        // Not all browsers support the FileReader interface.  Return with the enabled bit = false
         return;
     }
+
+    checkFileReaderSyncSupport();
 
     function setupClipboard(element, opts) {
         if (!FileReaderJS.enabled) {
@@ -70,7 +75,7 @@ See http://github.com/bgrins/filereader.js for documentation
 
         function onpaste(ev) {
             var files = [];
-            var clipboardData = ev.clipboardData || {};            
+            var clipboardData = ev.clipboardData || {};
             var items = clipboardData.items || [];
 
             for (var i = 0; i < items.length; i++) {
@@ -120,7 +125,7 @@ See http://github.com/bgrins/filereader.js for documentation
         document.body.addEventListener("dragstart", globaldragstart, true);
         document.body.addEventListener("dragend", globaldragend, true);
         document.body.addEventListener("drop", preventFileRedirect, false);
-        
+
         dropbox.addEventListener("dragenter", onlyWithFiles(dragenter), false);
         dropbox.addEventListener("dragleave", onlyWithFiles(dragleave), false);
         dropbox.addEventListener("dragover", onlyWithFiles(dragover), false);
@@ -135,19 +140,22 @@ See http://github.com/bgrins/filereader.js for documentation
                 fn.apply(this, arguments);
             }
         }
+
         function globaldragend(e) {
             initializedOnBody = false;
         }
+
         function globaldragstart(e) {
             initializedOnBody = true;
         }
+
         function preventFileRedirect(e) {
             if (e.dataTransfer.files && e.dataTransfer.files.length ){
                 e.stopPropagation();
                 e.preventDefault();
             }
         }
-        
+
         function drop(e) {
             e.stopPropagation();
             e.preventDefault();
@@ -231,41 +239,94 @@ See http://github.com/bgrins/filereader.js for documentation
             opts.on.groupend(group);
         }
 
-        for (var i = 0; i < files.length; i++) {
+        var sync = FileReaderJS.sync && FileReaderSyncSupport && WorkerURL;
+        var syncWorker;
 
-            var file = files[i];
+        if (sync) {
+
+            syncWorker = new Worker(WorkerURL);
+
+            syncWorker.onmessage = function(e) {
+                var file = e.data.file;
+
+                // Workers seem to lose the custom property on the file object.
+                if (!file.extra) {
+                    file.extra = e.data.extra;
+                }
+
+                if (e.data.result === "error") {
+                    opts.on["error"]({ }, file);
+                }
+                else {
+                    opts.on["load"]({ target: { result: e.data.result }}, file);
+                }
+                groupFileDone();
+            };
+        }
+
+        Array.prototype.forEach.call(files, function(file) {
+
             if (opts.accept && !file.type.match(new RegExp(opts.accept))) {
                 opts.on.skip(file);
                 groupFileDone();
-                continue;
+                return;
             }
 
             if (opts.on.beforestart(file) === false) {
                 opts.on.skip(file);
                 groupFileDone();
-                continue;
+                return;
             }
 
-            var reader = new FileReader();
+            var readAs = getReadAsMethod(file.type, opts.readAsMap, opts.readAsDefault);
 
-            for (var j = 0; j < fileReaderEvents.length; j++) {
-                var eventName = fileReaderEvents[j];
+            if (sync) {
+                syncWorker.postMessage({
+                    file: file,
+                    extra: file.extra,
+                    readAs: readAs
+                });
+            }
+            else {
 
-                // bind to a self executing function that returns a function that
-                // passes the file along to the callback, so we have access to the file
-                // from the ProgressEvent.  Need to keep scope for current file and eventName
-                reader['on' + eventName] = (function(eventName, file) {
-                    return function(e) {
+                var reader = new FileReader();
+
+                fileReaderEvents.forEach(function(eventName) {
+                    reader['on' + eventName] = function(e) {
                         opts.on[eventName](e, file);
                         if (eventName == 'loadend') {
                             groupFileDone();
                         }
                     };
-                })(eventName, file);
-            }
+                });
 
-            reader[getReadAsMethod(file.type, opts.readAsMap, opts.readAsDefault)](file);
+                reader[readAs](file);
+            }
+        });
+    }
+
+    // checkFileReaderSyncSupport: Create a temporary worker and see if FileReaderSync exists
+    function checkFileReaderSyncSupport() {
+        var checkSyncSupportURL = generateWorkerUrl("self.addEventListener('message',function(e){ postMessage(!!FileReaderSync); }, false);");
+        if (checkSyncSupportURL) {
+            var worker = new Worker(checkSyncSupportURL);
+            worker.onmessage = function(e) {
+                FileReaderSyncSupport = e.data;
+                URL.revokeObjectURL(checkSyncSupportURL);
+            };
+            worker.postMessage();
         }
+    }
+
+    // generateWorkerUrl: Handle the Blob building and URL creation
+    function generateWorkerUrl(script) {
+        if (window.Worker && BlobBuilder && URL) {
+            var bb = new BlobBuilder();
+            bb.append(script);
+            return URL.createObjectURL(bb.getBlob());
+        }
+
+        return null;
     }
 
     // noop: do nothing
