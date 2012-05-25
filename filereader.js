@@ -121,6 +121,41 @@ See http://github.com/bgrins/filereader.js for documentation
         dropbox.addEventListener("dragover", dragover, false);
         dropbox.addEventListener("drop", drop, false);
 
+        var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
+        var dragClass = instanceOptions.dragClass;
+
+        // Bind to body to prevent custom events from firing when it was initialized on the page.
+        document.body.addEventListener("dragstart", globaldragstart, true);
+        document.body.addEventListener("dragend", globaldragend, true);
+        document.body.addEventListener("drop", preventFileRedirect, false);
+        
+        dropbox.addEventListener("dragenter", onlyWithFiles(dragenter), false);
+        dropbox.addEventListener("dragleave", onlyWithFiles(dragleave), false);
+        dropbox.addEventListener("dragover", onlyWithFiles(dragover), false);
+        dropbox.addEventListener("drop", onlyWithFiles(drop), false);
+
+        var initializedOnBody = false;
+        function onlyWithFiles(fn) {
+            return function() {
+                if (initializedOnBody) {
+                    return;
+                }
+                fn.apply(this, arguments);
+            }
+        }
+        function globaldragend(e) {
+            initializedOnBody = false;
+        }
+        function globaldragstart(e) {
+            initializedOnBody = true;
+        }
+        function preventFileRedirect(e) {
+            if (e.dataTransfer.files && e.dataTransfer.files.length ){
+                e.stopPropagation();
+                e.preventDefault();
+            }
+        }
+        
         function drop(e) {
             e.stopPropagation();
             e.preventDefault();
