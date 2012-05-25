@@ -27,12 +27,36 @@
 	#file-list pre { margin:20px 0; border: solid 2px #8d8; display:none; }
 	#file-list pre.done { border-color: #8d8; }
  	
- 	.filename {  }
+    .row {
+        margin-bottom: 20px;
+    }
+    #demo {
+        list-style-type: none;
+    }
+    #sync + strong {
+        color: #dec857;
+    }
+    #async + strong {
+        color: #7bde57;
+    }
+    body:after {
+        content: "";
+        display:block;
+        position:fixed;
+        top: -50px;
+        padding: 2px;
+        border-radius: 50%;
+        right:-50px;
+        width: 100px;
+        height: 100px;
+        background: #7bde57;
+    }
+    body.sync:after {
+        background: #dec857;
+    }
+ 	.done .filename { color: #357048; }
 	</style>
 	
-	<script type='text/javascript' src='filereader.js'></script>
-	<script src="docs/jquery-1.7.1.js"></script>
-	<script src="docs/bootstrap-modal.js"></script>
 </head>
 
 <body>
@@ -41,14 +65,19 @@
 	  
       <div class="content">
         <div class="page-header">
-          <h1>FileReader.js <small> - read files with JavaScript!</small></h1>
+          <h1><a href='http://bgrins.github.com/filereader.js/'>FileReader.js</a> <small> - Read Files with JavaScript!</small></h1>
 		  
         </div>
         <div class="row">
 			<div class="offset1">
-				<h2>About</h2>
+				<h2>Read Files In The Browser</h2>
 				<p>
-				FileReader.js is intended to make accessing files via the <a href='http://dev.w3.org/2006/webapi/FileAPI/#FileReader-interface'>FileReader interface</a> easier.  Read more about <a href='http://www.briangrinstead.com/blog/filereaderjs'>the motivation behind filereader.js</a>.
+				FileReader.js is intended to make accessing files via the <a href='http://dev.w3.org/2006/webapi/FileAPI/#FileReader-interface'>FileReader interface</a> easier.  
+                Read more about <a href='http://www.briangrinstead.com/blog/filereaderjs'>the motivation behind filereader.js</a>.
+				</p>
+				<h3>No Dependancies</h3>
+				<p>
+				FileReader.js does not require any other libraries.  <strong>If</strong> you do use jQuery, there is a small plugin wrapping up the functionlity though!
 				</p>
 			</div>
 		</div>
@@ -56,10 +85,46 @@
 			<div class="offset1">
 				<h2>Source Code</h2>
 				<p>
-                <a class='btn primary' href='http://github.com/bgrins/filereader.js'>Project On Github</a>
+                <a class='btn btn-primary' href='http://github.com/bgrins/filereader.js'>Project On Github</a>
                 <a class='btn' href='https://raw.github.com/bgrins/filereader.js/master/filereader.js'>Just the JavaScript</a>
                 </p>
 			</div>
+		</div>
+        <div class="row">
+			<div class="offset1">
+				<h2>Demonstration</h2>
+				<p>There are <strong>three ways</strong> to accept input - you can pick and choose any of these.</p>
+			</div>
+		</div>
+        <div class="row">
+			<ul id='demo' class='offset2'>
+				<li class=''>
+					<h3>File Input</h3>
+					
+					<p>You can access files that users select via an input[type=file].  Try it out below:</p>
+					<form id='file-form' method="post" enctype="multipart/form-data">
+						<input type="hidden" name="extra-data" multiple />
+						<input type="file" id="file-input" name="file-input" multiple />
+					</form>
+					
+				</li>
+				<li class="">
+					<h3>Drop Zone</h3>
+					
+					<p id='dropzone'>
+						Drag and drop files from your desktop here (or select them from the input above).<br />
+						They will be read in browser.<br />
+                        <img src='docs/arrow.png' width='50' /><br />
+					</p>
+					
+				</li>
+				<li class="">
+					<h3>Clipboard</h3>
+					<p>
+						In some browsers, you can paste images onto a page.  Go ahead and 'print screen' then press Ctrl+V to try that out!
+					</p>
+				</li>
+			</ul>
 		</div>
         <div class="row">
 			<div class="offset1">
@@ -89,56 +154,31 @@
 				<h2>Browser Support</h2>
 				<p>
 					<ul>
-						<li>Internet Explorer: <span class='label success'>10+</span></li>
-						<li>Firefox: <span class='label success'>10+</span></li>
-						<li>Chrome: <span class='label success'>13+</span></li>
-						<li>Safari: <span class='label important'>no support</span></li>
+						<li>Internet Explorer: <span class='label label-success'>10+</span></li>
+						<li>Firefox: <span class='label label-success'>10+</span></li>
+						<li>Chrome: <span class='label label-success'>13+</span></li>
+						<li>Opera: <span class='label label-success'>12+</span></li>
+						<li>Safari: <span class='label label-warning'>partial</span></li>
 					</ul>
 					For more information, see the <a href='http://caniuse.com/#feat=fileapi'>Full Browser Support Graph for File API</a>
 				</p>
 			</div>
-		</div>
-        <div class="row">
-			<div class="offset1">
-				<h2>Different Input Types</h2>
-				<p>There are three ways to accept input - you can pick and choose any of these.</p>
-			</div>
-		</div>
-        <div class="row">
-			<ul class='offset2'>
-				<li class=''>
-					<h3>File Input</h3>
-					
-					<p>You can access files that users select via an input[type=file].  Try it out below:</p>
-					<form id='file-form' method="post" enctype="multipart/form-data">
-						<input type="hidden" name="extra-data" multiple />
-						<input type="file" id="file-input" name="file-input" multiple />
-					</form>
-					
-				</li>
-				<li class="">
-					<h3>Drop Zone</h3>
-					
-					<p id='dropzone'>
-						Drag and drop files from your desktop here (or select them from the input above).<br />
-						They will be read in browser.<br />
-                        <img src='docs/arrow.png' width='50' /><br />
-					</p>
-					
-				</li>
-				<li class="">
-					<h3>Clipboard</h3>
-					<p>
-						In some browsers, you can paste images onto a page.  Go ahead and 'print screen' then press Ctrl+V to try that out!
-					</p>
-				</li>
-			</ul>
 		</div>
 			
       </div>
 
       <div class="sidebar well">
           <h5>Loaded Files</h5>
+            <p>
+            <form class='form'>
+            <fieldset>
+                <div class='controls'>
+                    <label class="radio"><input type='radio' name='load-type' id='sync' /> <strong>Sync</strong> - Using <a target='_blank' href='http://www.w3.org/TR/FileAPI/#FileReaderSync'>FileReaderSync</a></label>
+                    <label class="radio"><input type='radio' name='load-type' id='async' checked='checked' /> <strong>Async</strong> - Using FileReader</label>
+                </div>
+            </fieldset>
+            </form>
+            </p>
 			<ul id='file-list'>
 			</ul>
       </div>
@@ -148,6 +188,9 @@
 
     </div>
 	
+	<script type='text/javascript' src='filereader.js'></script>
+	<script src="docs/jquery-1.7.1.js"></script>
+	<script src="docs/bootstrap.js"></script>
 	<script type='text/javascript'>
 
 	var filelist = document.getElementById("file-list");
@@ -221,6 +264,12 @@
 	FileReaderJS.setupDrop(document.getElementById('dropzone'), opts);
 	FileReaderJS.setupClipboard(document.body, opts);
 	
+    $(function() {
+        $(".sidebar").on('click', 'input', function() {
+            FileReaderJS.sync = $("#sync").is(":checked");
+            $("body").toggleClass("sync", !!FileReaderJS.sync);
+        });
+    });
 	</script>
 </body>
 </html>
