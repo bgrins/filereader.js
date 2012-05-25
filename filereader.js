@@ -13,6 +13,7 @@ See http://github.com/bgrins/filereader.js for documentation
     var URL = window.URL || window.webkitURL;
     var FileReaderSyncSupport = false;
     var WorkerURL = generateWorkerUrl("self.addEventListener('message',function(e){var data=e.data;try{var reader=new FileReaderSync;postMessage({result:reader[data.readAs](data.file),extra:data.extra,file:data.file})}catch(e){postMessage({result:'error',extra:data.extra,file:data.file})}},false);");
+    
     var fileReaderEvents = ['loadstart', 'progress', 'load', 'abort', 'error', 'loadend'];
     var FileReaderJS = global.FileReaderJS = {
         enabled: false,
@@ -44,7 +45,6 @@ See http://github.com/bgrins/filereader.js for documentation
         output: []
     };
     
-    checkFileReaderSyncSupport();
 
     // setup jQuery plugin if available
     if (typeof(jQuery) !== "undefined") {
@@ -65,6 +65,8 @@ See http://github.com/bgrins/filereader.js for documentation
         // Not all browsers support the FileReader interface.  Return with the enabled bit = false
         return;
     }
+    
+    checkFileReaderSyncSupport();
 
     function setupClipboard(element, opts) {
         if (!FileReaderJS.enabled) {
@@ -210,7 +212,6 @@ See http://github.com/bgrins/filereader.js for documentation
 
     // processFileList: read the files with FileReader, send off custom events.
     function processFileList(files, opts) {
-
 
         var group = {
             groupID: getGroupID(),
