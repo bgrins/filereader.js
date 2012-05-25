@@ -13,8 +13,8 @@ See http://github.com/bgrins/filereader.js for documentation
     var URL = window.URL || window.webkitURL;
     var FileReaderSyncSupport = false;
     var WorkerURL = generateWorkerUrl("self.addEventListener('message',function(e){var data=e.data;try{var reader=new FileReaderSync;postMessage({result:reader[data.readAs](data.file),extra:data.extra,file:data.file})}catch(e){postMessage({result:'error',extra:data.extra,file:data.file})}},false);");
-    
     var fileReaderEvents = ['loadstart', 'progress', 'load', 'abort', 'error', 'loadend'];
+
     var FileReaderJS = global.FileReaderJS = {
         enabled: false,
         setupInput: setupInput,
@@ -44,9 +44,8 @@ See http://github.com/bgrins/filereader.js for documentation
         },
         output: []
     };
-    
 
-    // setup jQuery plugin if available
+    // Setup jQuery plugin (if available)
     if (typeof(jQuery) !== "undefined") {
         jQuery.fn.fileReaderJS = function(opts) {
             return this.each(function() {
@@ -61,11 +60,11 @@ See http://github.com/bgrins/filereader.js for documentation
         };
     }
 
+    // Not all browsers support the FileReader interface.  Return with the enabled bit = false.
     if (!FileReader) {
-        // Not all browsers support the FileReader interface.  Return with the enabled bit = false
         return;
     }
-    
+
     checkFileReaderSyncSupport();
 
     function setupClipboard(element, opts) {
@@ -78,7 +77,7 @@ See http://github.com/bgrins/filereader.js for documentation
 
         function onpaste(ev) {
             var files = [];
-            var clipboardData = ev.clipboardData || {};            
+            var clipboardData = ev.clipboardData || {};
             var items = clipboardData.items || [];
 
             for (var i = 0; i < items.length; i++) {
@@ -128,7 +127,7 @@ See http://github.com/bgrins/filereader.js for documentation
         document.body.addEventListener("dragstart", globaldragstart, true);
         document.body.addEventListener("dragend", globaldragend, true);
         document.body.addEventListener("drop", preventFileRedirect, false);
-        
+
         dropbox.addEventListener("dragenter", onlyWithFiles(dragenter), false);
         dropbox.addEventListener("dragleave", onlyWithFiles(dragleave), false);
         dropbox.addEventListener("dragover", onlyWithFiles(dragover), false);
@@ -143,19 +142,22 @@ See http://github.com/bgrins/filereader.js for documentation
                 fn.apply(this, arguments);
             }
         }
+
         function globaldragend(e) {
             initializedOnBody = false;
         }
+
         function globaldragstart(e) {
             initializedOnBody = true;
         }
+
         function preventFileRedirect(e) {
             if (e.dataTransfer.files && e.dataTransfer.files.length ){
                 e.stopPropagation();
                 e.preventDefault();
             }
         }
-        
+
         function drop(e) {
             e.stopPropagation();
             e.preventDefault();
@@ -238,14 +240,14 @@ See http://github.com/bgrins/filereader.js for documentation
             group.ended = new Date();
             opts.on.groupend(group);
         }
-        
+
         var sync = FileReaderJS.sync && FileReaderSyncSupport && WorkerURL;
         var syncWorker;
-        
+
         if (sync) {
 
             syncWorker = new Worker(WorkerURL);
-                
+
             syncWorker.onmessage = function(e) {
                 var file = e.data.file;
 
@@ -253,7 +255,7 @@ See http://github.com/bgrins/filereader.js for documentation
                 if (!file.extra) {
                     file.extra = e.data.extra;
                 }
-                
+
                 if (e.data.result === "error") {
                     opts.on["error"]({ }, file);
                 }
@@ -265,7 +267,7 @@ See http://github.com/bgrins/filereader.js for documentation
         }
 
         Array.prototype.forEach.call(files, function(file) {
-        
+
             if (opts.accept && !file.type.match(new RegExp(opts.accept))) {
                 opts.on.skip(file);
                 groupFileDone();
@@ -279,7 +281,7 @@ See http://github.com/bgrins/filereader.js for documentation
             }
 
             var readAs = getReadAsMethod(file.type, opts.readAsMap, opts.readAsDefault);
-                        
+
             if (sync) {
                 syncWorker.postMessage({
                     file: file,
@@ -288,9 +290,9 @@ See http://github.com/bgrins/filereader.js for documentation
                 });
             }
             else {
-            
+
                 var reader = new FileReader();
-                
+
                 fileReaderEvents.forEach(function(eventName) {
                     reader['on' + eventName] = function(e) {
                         opts.on[eventName](e, file);
@@ -299,12 +301,12 @@ See http://github.com/bgrins/filereader.js for documentation
                         }
                     };
                 });
-                
+
                 reader[readAs](file);
             }
         });
     }
-    
+
     // checkFileReaderSyncSupport: Create a temporary worker and see if FileReaderSync exists
     function checkFileReaderSyncSupport() {
         var checkSyncSupportURL = generateWorkerUrl("self.addEventListener('message',function(e){ postMessage(!!FileReaderSync); }, false);");
@@ -317,7 +319,7 @@ See http://github.com/bgrins/filereader.js for documentation
             worker.postMessage();
         }
     }
-    
+
     // generateWorkerUrl: Handle the Blob building and URL creation
     function generateWorkerUrl(script) {
         if (window.Worker && BlobBuilder && URL) {
@@ -325,10 +327,10 @@ See http://github.com/bgrins/filereader.js for documentation
             bb.append(script);
             return URL.createObjectURL(bb.getBlob());
         }
-        
+
         return null;
     }
-    
+
     // noop: do nothing
     function noop() {
 
