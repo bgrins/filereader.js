@@ -27,6 +27,12 @@
 	#file-list pre { margin:20px 0; border: solid 2px #8d8; display:none; }
 	#file-list pre.done { border-color: #8d8; }
  	
+    .row {
+        margin-bottom: 20px;
+    }
+    #demo {
+        list-style-type: none;
+    }
     #sync + strong {
         color: #dec857;
     }
@@ -59,12 +65,12 @@
 	  
       <div class="content">
         <div class="page-header">
-          <h1><a href='http://bgrins.github.com/filereader.js/'>FileReader.js</a> <small> - read files with JavaScript!</small></h1>
+          <h1><a href='http://bgrins.github.com/filereader.js/'>FileReader.js</a> <small> - Read Files with JavaScript!</small></h1>
 		  
         </div>
         <div class="row">
 			<div class="offset1">
-				<h2>About</h2>
+				<h2>Read Files In The Browser</h2>
 				<p>
 				FileReader.js is intended to make accessing files via the <a href='http://dev.w3.org/2006/webapi/FileAPI/#FileReader-interface'>FileReader interface</a> easier.  
                 Read more about <a href='http://www.briangrinstead.com/blog/filereaderjs'>the motivation behind filereader.js</a>.
@@ -83,6 +89,42 @@
                 <a class='btn' href='https://raw.github.com/bgrins/filereader.js/master/filereader.js'>Just the JavaScript</a>
                 </p>
 			</div>
+		</div>
+        <div class="row">
+			<div class="offset1">
+				<h2>Demonstration</h2>
+				<p>There are <strong>three ways</strong> to accept input - you can pick and choose any of these.</p>
+			</div>
+		</div>
+        <div class="row">
+			<ul id='demo' class='offset2'>
+				<li class=''>
+					<h3>File Input</h3>
+					
+					<p>You can access files that users select via an input[type=file].  Try it out below:</p>
+					<form id='file-form' method="post" enctype="multipart/form-data">
+						<input type="hidden" name="extra-data" multiple />
+						<input type="file" id="file-input" name="file-input" multiple />
+					</form>
+					
+				</li>
+				<li class="">
+					<h3>Drop Zone</h3>
+					
+					<p id='dropzone'>
+						Drag and drop files from your desktop here (or select them from the input above).<br />
+						They will be read in browser.<br />
+                        <img src='docs/arrow.png' width='50' /><br />
+					</p>
+					
+				</li>
+				<li class="">
+					<h3>Clipboard</h3>
+					<p>
+						In some browsers, you can paste images onto a page.  Go ahead and 'print screen' then press Ctrl+V to try that out!
+					</p>
+				</li>
+			</ul>
 		</div>
         <div class="row">
 			<div class="offset1">
@@ -112,50 +154,15 @@
 				<h2>Browser Support</h2>
 				<p>
 					<ul>
-						<li>Internet Explorer: <span class='label success'>10+</span></li>
-						<li>Firefox: <span class='label success'>10+</span></li>
-						<li>Chrome: <span class='label success'>13+</span></li>
-						<li>Safari: <span class='label important'>no support</span></li>
+						<li>Internet Explorer: <span class='label label-success'>10+</span></li>
+						<li>Firefox: <span class='label label-success'>10+</span></li>
+						<li>Chrome: <span class='label label-success'>13+</span></li>
+						<li>Opera: <span class='label label-success'>12+</span></li>
+						<li>Safari: <span class='label label-warning'>partial</span></li>
 					</ul>
 					For more information, see the <a href='http://caniuse.com/#feat=fileapi'>Full Browser Support Graph for File API</a>
 				</p>
 			</div>
-		</div>
-        <div class="row">
-			<div class="offset1">
-				<h2>Different Input Types</h2>
-				<p>There are three ways to accept input - you can pick and choose any of these.</p>
-			</div>
-		</div>
-        <div class="row">
-			<ul class='offset2'>
-				<li class=''>
-					<h3>File Input</h3>
-					
-					<p>You can access files that users select via an input[type=file].  Try it out below:</p>
-					<form id='file-form' method="post" enctype="multipart/form-data">
-						<input type="hidden" name="extra-data" multiple />
-						<input type="file" id="file-input" name="file-input" multiple />
-					</form>
-					
-				</li>
-				<li class="">
-					<h3>Drop Zone</h3>
-					
-					<p id='dropzone'>
-						Drag and drop files from your desktop here (or select them from the input above).<br />
-						They will be read in browser.<br />
-                        <img src='docs/arrow.png' width='50' /><br />
-					</p>
-					
-				</li>
-				<li class="">
-					<h3>Clipboard</h3>
-					<p>
-						In some browsers, you can paste images onto a page.  Go ahead and 'print screen' then press Ctrl+V to try that out!
-					</p>
-				</li>
-			</ul>
 		</div>
 			
       </div>

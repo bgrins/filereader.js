@@ -11,22 +11,15 @@ See http://github.com/bgrins/filereader.js for documentation
     var FileReader = global.FileReader;
     var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
     var URL = window.URL || window.webkitURL;
-    var WorkerURL = (function() {
-        if (window.Worker && BlobBuilder && URL) {
-            var bb = new BlobBuilder();
-            bb.append("self.addEventListener('message',function(e){var data=e.data;try{var reader=new FileReaderSync;postMessage({result:reader[data.readAs](data.file),extra:data.extra,file:data.file})}catch(e){postMessage({result:'error',extra:data.extra,file:data.file})}},false);");
-            return URL.createObjectURL(bb.getBlob());
-        }
-    })();
-    //WorkerURL = "filereader-sync.js";
-    
+    var FileReaderSyncSupport = false;
+    var WorkerURL = generateWorkerUrl("self.addEventListener('message',function(e){var data=e.data;try{var reader=new FileReaderSync;postMessage({result:reader[data.readAs](data.file),extra:data.extra,file:data.file})}catch(e){postMessage({result:'error',extra:data.extra,file:data.file})}},false);");
+    var fileReaderEvents = ['loadstart', 'progress', 'load', 'abort', 'error', 'loadend'];
     var FileReaderJS = global.FileReaderJS = {
         enabled: false,
         setupInput: setupInput,
         setupDrop: setupDrop,
         setupClipboard: setupClipboard,
-        sync: true,
-
+        sync: false,
         opts: {
             dragClass: "drag",
             accept: false,
@@ -50,7 +43,8 @@ See http://github.com/bgrins/filereader.js for documentation
         },
         output: []
     };
-    var fileReaderEvents = ['loadstart', 'progress', 'load', 'abort', 'error', 'loadend'];
+    
+    checkFileReaderSyncSupport();
 
     // setup jQuery plugin if available
     if (typeof(jQuery) !== "undefined") {
@@ -244,7 +238,7 @@ See http://github.com/bgrins/filereader.js for documentation
             opts.on.groupend(group);
         }
         
-        var sync = FileReaderJS.sync && WorkerURL;
+        var sync = FileReaderJS.sync && FileReaderSyncSupport && WorkerURL;
         var syncWorker;
         
         if (sync) {
@@ -309,7 +303,31 @@ See http://github.com/bgrins/filereader.js for documentation
             }
         });
     }
-
+    
+    // checkFileReaderSyncSupport: Create a temporary worker and see if FileReaderSync exists
+    function checkFileReaderSyncSupport() {
+        var checkSyncSupportURL = generateWorkerUrl("self.addEventListener('message',function(e){ postMessage(!!FileReaderSync); }, false);");
+        if (checkSyncSupportURL) {
+            var worker = new Worker(checkSyncSupportURL);
+            worker.onmessage = function(e) {
+                FileReaderSyncSupport = e.data;
+                URL.revokeObjectURL(checkSyncSupportURL);
+            };
+            worker.postMessage();
+        }
+    }
+    
+    // generateWorkerUrl: Handle the Blob building and URL creation
+    function generateWorkerUrl(script) {
+        if (window.Worker && BlobBuilder && URL) {
+            var bb = new BlobBuilder();
+            bb.append(script);
+            return URL.createObjectURL(bb.getBlob());
+        }
+        
+        return null;
+    }
+    
     // noop: do nothing
     function noop() {
 
