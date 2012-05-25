@@ -147,20 +147,72 @@
 				<p>
 					<strong>There is no jQuery or any other library dependancy for FileReader.js</strong>.  It will work with a simple call to
 <pre class="prettyprint">
-	&lt;script type='text/javascript' src='filereader.js'&gt;&lt;/script&gt;
+&lt;script type='text/javascript' src='filereader.js'&gt;&lt;/script&gt;
 </pre>
 <pre class="prettyprint">
-	FileReaderJS.setupInput(document.getElementById('file-input'), opts);
-	FileReaderJS.setupDrop(document.getElementById('dropzone'), opts);
-	FileReaderJS.setupClipboard(document.body, opts);
+var opts = {
+    dragClass: "drag",
+    accept: false,
+    readAsMap: {
+        'image/*': 'DataURL',
+        'text/*' : 'Text'
+    },
+    readAsDefault: 'BinaryString',
+    on: {,
+        beforestart: function(e, file) {
+        	// return false if you want to skip this file
+
+    	},
+        loadstart: function(e, file) {
+        	// Native ProgressEvent
+
+    	},
+        progress: function(e, file) {
+        	// Native ProgressEvent
+
+    	},
+        load: function(e, file) {
+        	// Native ProgressEvent
+
+    	},
+        error: function(e, file) {
+        	// Native ProgressEvent
+
+    	},
+        loadend: function(e, file) {
+        	// Native ProgressEvent
+
+    	},
+        abort: function(e, file) {
+        	// Native ProgressEvent
+
+    	},
+        skip: function(e, file) {
+        	// Called when a file is skipped.  This happens when:
+        	// 	1) A file doesn't match the accept option
+        	// 	2) false is returned in the beforestart callback
+    	},
+        groupstart: function(group) {
+
+    	},
+        groupend: function(group) {
+
+    	}
+    }
+};
+</pre>
+<pre class="prettyprint">
+FileReaderJS.setupInput(document.getElementById('file-input'), opts);
+FileReaderJS.setupDrop(document.getElementById('dropzone'), opts);
+FileReaderJS.setupClipboard(document.body, opts);
 </pre>
 				</p>
 				<p>
-					IF you do use jQuery, you could use it as such:
+					If you do use jQuery, you could use it as such:
 				</p>
 <pre class="prettyprint">
-	$("#file-input, #dropzone").fileReaderJS(opts);
-	$("body").fileClipboard(opts);
+$("#file-input, #dropzone").fileReaderJS(opts);
+$("body").fileClipboard(opts);
 </pre>
 			</div>
 		</div>

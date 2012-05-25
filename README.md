@@ -1,18 +1,25 @@
-filereader.js
+# filereader.js
+
 A small library independant wrapper for the JavaScript FileReader interface
 Developed in conjunction with a project of mine, http://instantsprite.com, a browser based CSS Sprite Generator which required this functionality.
 
 See http://dev.w3.org/2006/webapi/FileAPI/#FileReader-interface for basic information
 See http://dev.w3.org/2006/webapi/FileAPI/#event-summary for details on Options/on.* callbacks
 
-Usage:
+## Usage:
 FileReaderJS.setupInput(input, opts);
 FileReaderJS.setupDrop(div, opts);
+FileReaderJS.setupClipboard(document.body, opts);
 
-If you have jQuery:
+## If you have jQuery:
 $(input).fileReaderJS(opts);
+$("body").fileClipboard(opts);
 
-Options:
+## FileReaderJS.sync
+Use the `FileReaderSync` object when available to load the files in a separate worker.  `false` by default.  This will cause only the `load` or `error` events to fire (there will be none of the other ProgressEvents, as the operation is synchronous).
+
+## Options
+
 	readAsMap: A collection taking key as a string that will be matched with regex against
 		file types and the type to read as.  If no match is found, it will use readAsDefault.
 		The default map is:
@@ -37,7 +44,7 @@ Options:
 		groupstart: function(group) { }
 		groupend: function(group) { }
 
-Parameters to events:
+## Parameters to events:
 	e - the native ProgressEvent created by the FileReader
 	file - an extension of the original File object.  See W3 link above for all native parameters.  Here are the extra fields
 		file.extra = {
@@ -54,11 +61,9 @@ Parameters to events:
 		started: the Date the group was recieved as input
 		ended: the Date all files in the group finished loading
 
-What it isn't:
+## What it isn't:
 * Completely cross browser - Chrome 6+, Firefox 3.6+, are the only current versions that support the File API. Safari 5.*+ (future releases) are planning on it.
 
-Future changes (hopefully):
-* Once FileReaderSync in implemented in browsers, provide this as an option to provide a non-blocking way to read files using Web Workers.  See http://www.w3.org/TR/FileAPI/#FileReaderSync and https://bugs.webkit.org/show_bug.cgi?id=41567.
 
 Any contributions welcome.  This plugin is open source under the MIT License.
 Author: Brian Grinstead
