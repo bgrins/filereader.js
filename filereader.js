@@ -1,9 +1,7 @@
-/*
-filereader.js - a lightweight wrapper for common FileReader usage.
-Open source code under MIT license: http://www.opensource.org/licenses/mit-license.php
-Author: Brian Grinstead
-
-See http://github.com/bgrins/filereader.js for documentation
+/*!
+    FileReader.js - a lightweight wrapper for common FileReader usage.
+    Copyright 2012 Brian Grinstead - MIT License.
+    See http://github.com/bgrins/filereader.js for documentation.
 */
 
 (function(global) {
