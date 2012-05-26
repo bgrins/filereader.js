@@ -10,7 +10,7 @@
     var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
     var URL = window.URL || window.webkitURL;
     var FileReaderSyncSupport = false;
-    var WorkerURL = generateWorkerUrl("self.addEventListener('message',function(e){var data=e.data;try{var reader=new FileReaderSync;postMessage({result:reader[data.readAs](data.file),extra:data.extra,file:data.file})}catch(e){postMessage({result:'error',extra:data.extra,file:data.file})}},false);");
+    var workerScript = "self.addEventListener('message',function(e) { var data=e.data; try{ var reader = new FileReaderSync; postMessage({ result: reader[data.readAs](data.file), extra: data.extra, file: data.file})} catch(e){ postMessage({ result:'error', extra:data.extra, file:data.file}); } }, false);";
     var fileReaderEvents = ['loadstart', 'progress', 'load', 'abort', 'error', 'loadend'];
 
     var FileReaderJS = global.FileReaderJS = {
@@ -63,7 +63,39 @@
         return;
     }
 
-    checkFileReaderSyncSupport();
+    // WorkerHelper is a little wrapper for generating web weorkers from strings
+    var WorkerHelper = (function() {
+
+        var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
+        var URL = window.URL || window.webkitURL;
+
+        function getURL (script) {
+            if (window.Worker && BlobBuilder && URL) {
+                var bb = new BlobBuilder();
+                bb.append(script);
+                return URL.createObjectURL(bb.getBlob());
+            }
+
+            return null;
+        };
+
+        function getWorker (script, onmessage) {
+            var url = getURL(script);
+            if (url) {
+                var worker = new Worker(url);
+                worker.onmessage = onmessage;
+                return worker;
+            }
+
+            return null;
+        };
+
+        return {
+            getURL: getURL,
+            getWorker: getWorker
+        }
+
+    })();
 
     function setupClipboard(element, opts) {
         if (!FileReaderJS.enabled) {
@@ -239,14 +271,12 @@
             opts.on.groupend(group);
         }
 
-        var sync = FileReaderJS.sync && FileReaderSyncSupport && WorkerURL;
+        var sync = FileReaderJS.sync && FileReaderSyncSupport;
         var syncWorker;
 
         if (sync) {
+            syncWorker = WorkerHelper.getWorker(workerScript, function(e) {
 
-            syncWorker = new Worker(WorkerURL);
-
-            syncWorker.onmessage = function(e) {
                 var file = e.data.file;
 
                 // Workers seem to lose the custom property on the file object.
@@ -261,7 +291,7 @@
                     opts.on["load"]({ target: { result: e.data.result }}, file);
                 }
                 groupFileDone();
-            };
+            });
         }
 
         Array.prototype.forEach.call(files, function(file) {
@@ -280,7 +310,7 @@
 
             var readAs = getReadAsMethod(file.type, opts.readAsMap, opts.readAsDefault);
 
-            if (sync) {
+            if (sync && syncWorker) {
                 syncWorker.postMessage({
                     file: file,
                     extra: file.extra,
@@ -307,7 +337,9 @@
 
     // checkFileReaderSyncSupport: Create a temporary worker and see if FileReaderSync exists
     function checkFileReaderSyncSupport() {
-        var checkSyncSupportURL = generateWorkerUrl("self.addEventListener('message',function(e){ postMessage(!!FileReaderSync); }, false);");
+        var checkSyncSupportURL = WorkerHelper.getURL(
+            "self.addEventListener('message',function(e){ postMessage(!!FileReaderSync); }, false);"
+        );
         if (checkSyncSupportURL) {
             var worker = new Worker(checkSyncSupportURL);
             worker.onmessage = function(e) {
@@ -316,17 +348,6 @@
             };
             worker.postMessage();
         }
-    }
-
-    // generateWorkerUrl: Handle the Blob building and URL creation
-    function generateWorkerUrl(script) {
-        if (window.Worker && BlobBuilder && URL) {
-            var bb = new BlobBuilder();
-            bb.append(script);
-            return URL.createObjectURL(bb.getBlob());
-        }
-
-        return null;
     }
 
     // noop: do nothing
@@ -392,5 +413,6 @@
 
     // The interface is supported, bind the FileReaderJS callbacks
     FileReaderJS.enabled = true;
+    checkFileReaderSyncSupport();
 
 })(this);
