@@ -144,8 +144,16 @@
         var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
 
         input.addEventListener("change", inputChange, false);
+        input.addEventListener("drop", inputDrop, false);
+
         function inputChange(e) {
-            processFileList(e.target.files, instanceOptions);
+            processFileList(input.files, instanceOptions);
+        }
+
+        function inputDrop(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            processFileList(e.dataTransfer.files, instanceOptions);
         }
     }
 
