@@ -18,14 +18,15 @@
         setupDrop: setupDrop,
         setupClipboard: setupClipboard,
         sync: false,
+        output: [],
         opts: {
             dragClass: "drag",
             accept: false,
+            readAsDefault: 'BinaryString',
             readAsMap: {
                 'image/*': 'DataURL',
                 'text/*' : 'Text'
             },
-            readAsDefault: 'BinaryString',
             on: {
                 loadstart: noop,
                 progress: noop,
@@ -38,8 +39,7 @@
                 groupend: noop,
                 beforestart: noop
             }
-        },
-        output: []
+        }
     };
 
     // Setup jQuery plugin (if available)
@@ -73,6 +73,7 @@
 
         var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
 
+        // May need to get just the URL in case it is needed for things beyond just creating a worker.
         function getURL (script) {
             if (window.Worker && BlobBuilder && URL) {
                 var bb = new BlobBuilder();
@@ -83,6 +84,7 @@
             return null;
         };
 
+        // If there is no need to revoke a URL later, or do anything fancy then just return the worker.
         function getWorker (script, onmessage) {
             var url = getURL(script);
             if (url) {
@@ -97,7 +99,7 @@
         return {
             getURL: getURL,
             getWorker: getWorker
-        }
+        };
 
     })();
 
@@ -107,27 +109,31 @@
         var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
         element.addEventListener("paste", onpaste, false);
 
-        function onpaste(ev) {
+        function onpaste(e) {
             var files = [];
-            var clipboardData = ev.clipboardData || {};
+            var clipboardData = e.clipboardData || {};
             var items = clipboardData.items || [];
 
             for (var i = 0; i < items.length; i++) {
                 var file = items[i].getAsFile();
+
                 if (file) {
-                    var matches = new RegExp("image/\(.*\)").exec(file.type);
-                    if (matches) {
+
+                    // Create a fake file name for images from clipboard, since this data doesn't get sent
+                    var matches = new RegExp("/\(.*\)").exec(file.type);
+                    if (!file.name && matches) {
                         var extension = matches[1];
                         file.name = "clipboard" + i + "." + extension;
-                        files.push(file);
                     }
+
+                    files.push(file);
                 }
             }
 
             if (files.length) {
                 processFileList(files, instanceOptions);
-                ev.preventDefault();
-                ev.stopPropagation();
+                e.preventDefault();
+                e.stopPropagation();
             }
         }
     };
