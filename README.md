@@ -1,21 +1,27 @@
-# filereader.js
+# FileReader.js
 
-A small library independant wrapper for the JavaScript FileReader interface
-Developed in conjunction with a project of mine, http://instantsprite.com, a browser based CSS Sprite Generator which required this functionality.
+http://bgrins.github.com/filereader.js/
 
-See http://dev.w3.org/2006/webapi/FileAPI/#FileReader-interface for basic information
-See http://dev.w3.org/2006/webapi/FileAPI/#event-summary for details on Options/on.* callbacks
+A small library independant wrapper for the JavaScript FileReader interface.
+
+This plugin is open source under the MIT License.  It was developed in conjunction with a CSS sprite generator project: http://instantsprite.com.
+
+## Specifications
+* See http://www.w3.org/TR/FileAPI/#dfn-filereader to read about FileReader.
+* See http://www.w3.org/TR/FileAPI/#FileReaderSync to read about FileReaderSync.
+* See http://www.w3.org/TR/FileAPI/#event-handler-attributes-section for details on Options/on.* callbacks.
 
 ## Usage:
-FileReaderJS.setupInput(input, opts);
-FileReaderJS.setupDrop(div, opts);
-FileReaderJS.setupClipboard(document.body, opts);
+	FileReaderJS.setupInput(document.getElementById('file-input'), opts);
+	FileReaderJS.setupDrop(document.getElementById('dropzone'), opts);
+	FileReaderJS.setupClipboard(document.body, opts);
 
 ## If you have jQuery:
-$(input).fileReaderJS(opts);
-$("body").fileClipboard(opts);
+	$("#file-input, #dropzone").fileReaderJS(opts);
+	$("body").fileClipboard(opts);
 
 ## FileReaderJS.sync
+
 Use the `FileReaderSync` object when available to load the files in a separate worker.  `false` by default.  This will cause only the `load` or `error` events to fire (there will be none of the other ProgressEvents, as the operation is synchronous).
 
 ## Options
@@ -45,25 +51,26 @@ Use the `FileReaderSync` object when available to load the files in a separate w
 		groupend: function(group) { }
 
 ## Parameters to events:
-	e - the native ProgressEvent created by the FileReader
-	file - an extension of the original File object.  See W3 link above for all native parameters.  Here are the extra fields
-		file.extra = {
-			fileID: a generated int id for this file.
-			groupID: the group that it belongs to
-			nameNoExtension: 'myImage' instead of 'myImage.png'
-			extension: 'png' instead of 'myImage.png'
-			prettySize: '46.47' kb instead of 47585 (size field)
-		}
 
-	group: simple grouping of files.  Each time a change event or drop even happens and a FileList is created, all of these files are stored inside a group object.
+	e - the native ProgressEvent created by the FileReader
+
+	file - an extension of the original File object.  See W3 link above for all native parameters.  Here are the extra fields
+
+	file.extra = {
+		fileID: a generated int id for this file.
+		groupID: the group that it belongs to
+		nameNoExtension: 'myImage' instead of 'myImage.png'
+		extension: 'png' instead of 'myImage.png'
+		prettySize: '46.47' kb instead of 47585 (size field)
+	}
+
+	group: simple grouping of files.  Each time a change event or drop even happens and a FileList is created, and all of these files are stored inside a group object.
+
 		groupID: a generated int id for this group
 		files: the FileList associated with the group
 		started: the Date the group was recieved as input
 		ended: the Date all files in the group finished loading
 
-## What it isn't:
-* Completely cross browser - Chrome 6+, Firefox 3.6+, are the only current versions that support the File API. Safari 5.*+ (future releases) are planning on it.
+Any contributions are welcome.
+Author: Brian Grinstead.
 
-
-Any contributions welcome.  This plugin is open source under the MIT License.
-Author: Brian Grinstead
