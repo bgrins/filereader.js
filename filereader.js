@@ -258,30 +258,33 @@
     // processFileList: read the files with FileReader, send off custom events.
     function processFileList(files, opts) {
 
+        var filesLeft = files.length;
         var group = {
             groupID: getGroupID(),
             files: files,
             started: new Date()
         };
 
-        FileReaderJS.output.push(group);
+        function groupEnd() {
+            group.ended = new Date();
+            opts.on.groupend(group);
+        }
 
-        var filesLeft = files.length;
-        var groupFileDone =	function() {
+        function groupFileDone() {
             if (--filesLeft == 0) {
-                group.ended = new Date();
-                opts.on.groupend(group);
+                groupEnd();
             }
-        };
+        }
 
+        FileReaderJS.output.push(group);
         setupCustomFileProperties(files, group.groupID);
 
         opts.on.groupstart(group);
 
-        // No files in group - call groupend immediately
+        // No files in group - end immediately
         if (!files.length) {
-            group.ended = new Date();
-            opts.on.groupend(group);
+            groupEnd();
+            return;
         }
 
         var sync = FileReaderJS.sync && FileReaderSyncSupport;
@@ -291,19 +294,17 @@
             syncWorker = WorkerHelper.getWorker(workerScript, function(e) {
 
                 var file = e.data.file;
+                var result = e.data.result;
 
                 // Workers seem to lose the custom property on the file object.
                 if (!file.extra) {
                     file.extra = e.data.extra;
                 }
 
-                if (e.data.result === "error") {
-                    opts.on["error"]({ }, file);
-                }
-                else {
-                    opts.on["load"]({ target: { result: e.data.result }}, file);
-                }
+                // Call error or load event depending on success of the read from the worker.
+                opts.on[result === "error" ? "error" : "load"]({ target: { result: result } }, file);
                 groupFileDone();
+
             });
         }
 
