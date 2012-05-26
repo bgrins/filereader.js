@@ -8,8 +8,8 @@
 
     var FileReader = window.FileReader;
     var FileReaderSyncSupport = false;
-    var URL = window.URL || window.webkitURL;
     var workerScript = "self.addEventListener('message', function(e) { var data=e.data; try { var reader = new FileReaderSync; postMessage({ result: reader[data.readAs](data.file), extra: data.extra, file: data.file})} catch(e){ postMessage({ result:'error', extra:data.extra, file:data.file}); } }, false);";
+    var syncDetectionScript = "self.addEventListener('message', function(e) { postMessage(!!FileReaderSync); }, false);";
     var fileReaderEvents = ['loadstart', 'progress', 'load', 'abort', 'error', 'loadend'];
 
     var FileReaderJS = window.FileReaderJS = {
@@ -46,18 +46,12 @@
     if (typeof(jQuery) !== "undefined") {
         jQuery.fn.fileReaderJS = function(opts) {
             return this.each(function() {
-                if (!FileReaderJS.enabled) {
-                    return;
-                }
                 $(this).is("input") ? setupInput(this, opts) : setupDrop(this, opts);
             });
         };
 
         jQuery.fn.fileClipboard = function(opts) {
             return this.each(function() {
-                if (!FileReaderJS.enabled) {
-                    return;
-                }
                 setupClipboard(this, opts);
             });
         };
@@ -71,6 +65,7 @@
     // WorkerHelper is a little wrapper for generating web weorkers from strings
     var WorkerHelper = (function() {
 
+        var URL = window.URL || window.webkitURL;
         var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
 
         // May need to get just the URL in case it is needed for things beyond just creating a worker.
@@ -106,7 +101,11 @@
     // setupClipboard: bind to clipboard events (intended for document.body)
     function setupClipboard(element, opts) {
 
+        if (!FileReaderJS.enabled) {
+            return;
+        }
         var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
+
         element.addEventListener("paste", onpaste, false);
 
         function onpaste(e) {
@@ -141,6 +140,9 @@
     // setupInput: bind the 'change' event to an input[type=file]
     function setupInput(input, opts) {
 
+        if (!FileReaderJS.enabled) {
+            return;
+        }
         var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
 
         input.addEventListener("change", inputChange, false);
@@ -160,6 +162,9 @@
     // setupDrop: bind the 'drop' event for a DOM element
     function setupDrop(dropbox, opts) {
 
+        if (!FileReaderJS.enabled) {
+            return;
+        }
         var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
         var dragClass = instanceOptions.dragClass;
         var initializedOnBody = false;
@@ -245,7 +250,7 @@
         }
     }
 
-    // getReadAsMethod: return method name for 'readAs*' - http://dev.w3.org/2006/webapi/FileAPI/#reading-a-file
+    // getReadAsMethod: return method name for 'readAs*' - http://www.w3.org/TR/FileAPI/#reading-a-file
     function getReadAsMethod(type, readAsMap, readAsDefault) {
         for (var r in readAsMap) {
             if (type.match(new RegExp(r))) {
@@ -290,12 +295,13 @@
         var sync = FileReaderJS.sync && FileReaderSyncSupport;
         var syncWorker;
 
+        // Only initialize the synchronous worker if the option is enabled - to prevent the overhead
         if (sync) {
             syncWorker = WorkerHelper.getWorker(workerScript, function(e) {
-
                 var file = e.data.file;
                 var result = e.data.result;
 
+console.log("SYNC!!", file, file.extra)
                 // Workers seem to lose the custom property on the file object.
                 if (!file.extra) {
                     file.extra = e.data.extra;
@@ -351,15 +357,11 @@
 
     // checkFileReaderSyncSupport: Create a temporary worker and see if FileReaderSync exists
     function checkFileReaderSyncSupport() {
-        var checkSyncSupportURL = WorkerHelper.getURL(
-            "self.addEventListener('message', function(e) { postMessage(!!FileReaderSync); }, false);"
-        );
-        if (checkSyncSupportURL) {
-            var worker = new Worker(checkSyncSupportURL);
-            worker.onmessage = function(e) {
-                FileReaderSyncSupport = e.data;
-                URL.revokeObjectURL(checkSyncSupportURL);
-            };
+        var worker = WorkerHelper.getWorker(syncDetectionScript, function(e) {
+            FileReaderSyncSupport = e.data;
+        });
+
+        if (worker) {
             worker.postMessage();
         }
     }
