@@ -301,7 +301,6 @@
                 var file = e.data.file;
                 var result = e.data.result;
 
-console.log("SYNC!!", file, file.extra)
                 // Workers seem to lose the custom property on the file object.
                 if (!file.extra) {
                     file.extra = e.data.extra;
