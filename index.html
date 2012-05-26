@@ -7,16 +7,41 @@
 	<style type='text/css'>
 
 	html, body { background-color: #eee; }
-	body { padding-top: 15px; }
+	body { padding-top: 15px; background: url(demo/light_toast.png); }
 
-	.container-fluid > .sidebar{ top:20px; left:auto; right:20px;width:260px; position:fixed; bottom:20px; min-height: 40px; overflow-y: auto;}
+	#sidebar
+	{
+		left:auto;
+		right:20px;
+		width:260px;
+		position:fixed;
+		min-height: 40px;
+		overflow-y: auto;
+		background: white;
+		top: -10px;
+		bottom: -10px;
+		margin: 0;
+		border: solid 2px #333;
+		box-shadow: 0 0 10px #999;
+	}
+	#sidebar.drag
+	{
+		background: #f9b660;
+	}
+	.offset1 {
+		margin-left: 60px;
+	}
+	.offset2 {
+		margin-left: 80px;
+	}
+
 	.container-fluid > .content{ margin-right:340px; margin-left:0;}
 
 	#dropzone { padding:20px; border: solid 3px #050; text-align: center;}
 	#dropzone.drag { border: solid 3px #0f0; }
 
 	#file-list:empty:before { content: "Add a file using one of the methods to the left and it will show up here."; display:block;  }
-	#file-list { margin-top:10px; }
+	#file-list { margin: 2px; }
 	#file-list li { margin:10px 0; list-style: none; }
 	#file-list li > img { max-width: 30px; max-height: 20px; margin-right: 3px; }
 	#file-list li .modal img { max-width: 400px; max-height: 400px; }
@@ -27,6 +52,33 @@
 	#file-list pre { margin:20px 0; border: solid 2px #8d8; display:none; }
 	#file-list pre.done { border-color: #8d8; }
 
+	.arrow_box {
+		position: relative;
+		background: #ffffff;
+		border: 2px solid #333;
+	}
+	.arrow_box:after, .arrow_box:before {
+		left: 100%;
+		border: solid transparent;
+		content: " ";
+		height: 0;
+		width: 0;
+		position: absolute;
+		pointer-events: none;
+	}
+	.arrow_box:after {
+		border-left-color: #ffffff;
+		border-width: 30px;
+		top: 50%;
+		margin-top: -30px;
+	}
+	.arrow_box:before {
+		border-left-color: #333;
+		border-width: 33px;
+		top: 50%;
+		margin-top: -33px;
+	}
+
     .row p {
         margin-bottom: 12px;
     }
@@ -35,6 +87,9 @@
     }
     #demo {
         list-style-type: none;
+        border-radius: 5px;
+		margin-right: -7px;
+		padding: 15px;
     }
     #sync + strong {
         color: #dec857;
@@ -112,7 +167,7 @@
 			</div>
 		</div>
         <div class="row">
-			<ul id='demo' class='offset2'>
+			<ul id='demo' class='offset2 arrow_box'>
 				<li class=''>
 					<h3>File Input</h3>
 
@@ -271,8 +326,9 @@ $("body").fileClipboard(opts);
 		</div>
       </div>
 
-      <div class="sidebar well">
-          <h5>Loaded Files</h5>
+      <div class="sidebar well" id="sidebar">
+          <h4>Demo - Loaded Files</h4>
+            <hr />
             <p>
             <form class='form'>
             <fieldset>
@@ -283,6 +339,7 @@ $("body").fileClipboard(opts);
             </fieldset>
             </form>
             </p>
+            <hr />
 			<ul id='file-list'>
 			</ul>
       </div>
@@ -366,6 +423,7 @@ $("body").fileClipboard(opts);
 
 	FileReaderJS.setupInput(document.getElementById('file-input'), opts);
 	FileReaderJS.setupDrop(document.getElementById('dropzone'), opts);
+	FileReaderJS.setupDrop(document.getElementById('sidebar'), opts);
 	FileReaderJS.setupClipboard(document.body, opts);
 
     $(function() {
