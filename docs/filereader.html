@@ -4,15 +4,15 @@
 <span class="cm">    See http://github.com/bgrins/filereader.js for documentation.</span>
 <span class="cm">*/</span>
 
-<span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">global</span><span class="p">)</span> <span class="p">{</span>
+<span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nb">window</span><span class="p">,</span> <span class="nb">document</span><span class="p">)</span> <span class="p">{</span>
 
-    <span class="kd">var</span> <span class="nx">FileReader</span> <span class="o">=</span> <span class="nx">global</span><span class="p">.</span><span class="nx">FileReader</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">FileReader</span> <span class="o">=</span> <span class="nb">window</span><span class="p">.</span><span class="nx">FileReader</span><span class="p">;</span>
     <span class="kd">var</span> <span class="nx">FileReaderSyncSupport</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
     <span class="kd">var</span> <span class="nx">URL</span> <span class="o">=</span> <span class="nb">window</span><span class="p">.</span><span class="nx">URL</span> <span class="o">||</span> <span class="nb">window</span><span class="p">.</span><span class="nx">webkitURL</span><span class="p">;</span>
     <span class="kd">var</span> <span class="nx">workerScript</span> <span class="o">=</span> <span class="s2">&quot;self.addEventListener(&#39;message&#39;, function(e) { var data=e.data; try { var reader = new FileReaderSync; postMessage({ result: reader[data.readAs](data.file), extra: data.extra, file: data.file})} catch(e){ postMessage({ result:&#39;error&#39;, extra:data.extra, file:data.file}); } }, false);&quot;</span><span class="p">;</span>
     <span class="kd">var</span> <span class="nx">fileReaderEvents</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;loadstart&#39;</span><span class="p">,</span> <span class="s1">&#39;progress&#39;</span><span class="p">,</span> <span class="s1">&#39;load&#39;</span><span class="p">,</span> <span class="s1">&#39;abort&#39;</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;loadend&#39;</span><span class="p">];</span>
 
-    <span class="kd">var</span> <span class="nx">FileReaderJS</span> <span class="o">=</span> <span class="nx">global</span><span class="p">.</span><span class="nx">FileReaderJS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">FileReaderJS</span> <span class="o">=</span> <span class="nb">window</span><span class="p">.</span><span class="nx">FileReaderJS</span> <span class="o">=</span> <span class="p">{</span>
         <span class="nx">enabled</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
         <span class="nx">setupInput</span><span class="o">:</span> <span class="nx">setupInput</span><span class="p">,</span>
         <span class="nx">setupDrop</span><span class="o">:</span> <span class="nx">setupDrop</span><span class="p">,</span>
@@ -345,6 +345,6 @@
     <span class="p">})(</span><span class="mi">0</span><span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-23">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-23">&#182;</a>               </div>               <p>The interface is supported, bind the FileReaderJS callbacks</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">FileReaderJS</span><span class="p">.</span><span class="nx">enabled</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
     <span class="nx">checkFileReaderSyncSupport</span><span class="p">();</span>
 
-<span class="p">})(</span><span class="k">this</span><span class="p">);</span>
+<span class="p">})(</span><span class="k">this</span><span class="p">,</span> <span class="nb">document</span><span class="p">);</span>
 
 </pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
