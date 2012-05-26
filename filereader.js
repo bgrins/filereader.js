@@ -4,15 +4,15 @@
     See http://github.com/bgrins/filereader.js for documentation.
 */
 
-(function(global) {
+(function(window, document) {
 
-    var FileReader = global.FileReader;
+    var FileReader = window.FileReader;
     var FileReaderSyncSupport = false;
     var URL = window.URL || window.webkitURL;
     var workerScript = "self.addEventListener('message', function(e) { var data=e.data; try { var reader = new FileReaderSync; postMessage({ result: reader[data.readAs](data.file), extra: data.extra, file: data.file})} catch(e){ postMessage({ result:'error', extra:data.extra, file:data.file}); } }, false);";
     var fileReaderEvents = ['loadstart', 'progress', 'load', 'abort', 'error', 'loadend'];
 
-    var FileReaderJS = global.FileReaderJS = {
+    var FileReaderJS = window.FileReaderJS = {
         enabled: false,
         setupInput: setupInput,
         setupDrop: setupDrop,
@@ -411,4 +411,4 @@
     FileReaderJS.enabled = true;
     checkFileReaderSyncSupport();
 
-})(this);
+})(this, document);
