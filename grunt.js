@@ -10,7 +10,7 @@ module.exports = function(grunt) {
                 '    FileReader.js - a lightweight wrapper for common FileReader usage.\n' +
                 '    Copyright <%= grunt.template.today("yyyy") %> Brian Grinstead - MIT License.\n' +
                 '    See http://github.com/bgrins/filereader.js for documentation.\n' +
-                '    Built: <%= grunt.template.today("yyyy-mm-dd at hh:mm:ss") %>\n' +
+                '    Built: <%= grunt.template.today("yyyy-mm-dd hh:mm:ss TT") %>\n' +
                 '*/\n'
     },
     min: {

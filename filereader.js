@@ -4,29 +4,29 @@
     See http://github.com/bgrins/filereader.js for documentation.
 */
 
-(function(global) {
+(function(window, document) {
 
-    var FileReader = global.FileReader;
-    var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
-    var URL = window.URL || window.webkitURL;
+    var FileReader = window.FileReader;
     var FileReaderSyncSupport = false;
     var workerScript = "self.addEventListener('message', function(e) { var data=e.data; try { var reader = new FileReaderSync; postMessage({ result: reader[data.readAs](data.file), extra: data.extra, file: data.file})} catch(e){ postMessage({ result:'error', extra:data.extra, file:data.file}); } }, false);";
+    var syncDetectionScript = "self.addEventListener('message', function(e) { postMessage(!!FileReaderSync); }, false);";
     var fileReaderEvents = ['loadstart', 'progress', 'load', 'abort', 'error', 'loadend'];
 
-    var FileReaderJS = global.FileReaderJS = {
+    var FileReaderJS = window.FileReaderJS = {
         enabled: false,
         setupInput: setupInput,
         setupDrop: setupDrop,
         setupClipboard: setupClipboard,
         sync: false,
+        output: [],
         opts: {
             dragClass: "drag",
             accept: false,
+            readAsDefault: 'BinaryString',
             readAsMap: {
                 'image/*': 'DataURL',
                 'text/*' : 'Text'
             },
-            readAsDefault: 'BinaryString',
             on: {
                 loadstart: noop,
                 progress: noop,
@@ -39,8 +39,7 @@
                 groupend: noop,
                 beforestart: noop
             }
-        },
-        output: []
+        }
     };
 
     // Setup jQuery plugin (if available)
@@ -66,9 +65,10 @@
     // WorkerHelper is a little wrapper for generating web weorkers from strings
     var WorkerHelper = (function() {
 
-        var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
         var URL = window.URL || window.webkitURL;
+        var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
 
+        // May need to get just the URL in case it is needed for things beyond just creating a worker.
         function getURL (script) {
             if (window.Worker && BlobBuilder && URL) {
                 var bb = new BlobBuilder();
@@ -79,6 +79,7 @@
             return null;
         };
 
+        // If there is no need to revoke a URL later, or do anything fancy then just return the worker.
         function getWorker (script, onmessage) {
             var url = getURL(script);
             if (url) {
@@ -93,99 +94,113 @@
         return {
             getURL: getURL,
             getWorker: getWorker
-        }
+        };
 
     })();
 
+    // setupClipboard: bind to clipboard events (intended for document.body)
     function setupClipboard(element, opts) {
+
         if (!FileReaderJS.enabled) {
             return;
         }
-
         var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
+
         element.addEventListener("paste", onpaste, false);
 
-        function onpaste(ev) {
+        function onpaste(e) {
             var files = [];
-            var clipboardData = ev.clipboardData || {};
+            var clipboardData = e.clipboardData || {};
             var items = clipboardData.items || [];
 
             for (var i = 0; i < items.length; i++) {
                 var file = items[i].getAsFile();
+
                 if (file) {
-                    var matches = new RegExp("image/\(.*\)").exec(file.type);
-                    if (matches) {
+
+                    // Create a fake file name for images from clipboard, since this data doesn't get sent
+                    var matches = new RegExp("/\(.*\)").exec(file.type);
+                    if (!file.name && matches) {
                         var extension = matches[1];
                         file.name = "clipboard" + i + "." + extension;
-                        files.push(file);
                     }
+
+                    files.push(file);
                 }
             }
 
             if (files.length) {
                 processFileList(files, instanceOptions);
-                ev.preventDefault();
-                ev.stopPropagation();
+                e.preventDefault();
+                e.stopPropagation();
             }
         }
     };
 
     // setupInput: bind the 'change' event to an input[type=file]
     function setupInput(input, opts) {
+
         if (!FileReaderJS.enabled) {
             return;
         }
-
         var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
 
         input.addEventListener("change", inputChange, false);
+        input.addEventListener("drop", inputDrop, false);
+
         function inputChange(e) {
-            processFileList(e.target.files, instanceOptions);
+            processFileList(input.files, instanceOptions);
+        }
+
+        function inputDrop(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            processFileList(e.dataTransfer.files, instanceOptions);
         }
     }
 
     // setupDrop: bind the 'drop' event for a DOM element
     function setupDrop(dropbox, opts) {
+
         if (!FileReaderJS.enabled) {
             return;
         }
-
         var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
         var dragClass = instanceOptions.dragClass;
+        var initializedOnBody = false;
 
-        // Bind to body to prevent custom events from firing when it was initialized on the page.
-        document.body.addEventListener("dragstart", globaldragstart, true);
-        document.body.addEventListener("dragend", globaldragend, true);
-        document.body.addEventListener("drop", preventFileRedirect, false);
-
+        // Bind drag events to the dropbox to add the class while dragging, and accept the drop data transfer.
         dropbox.addEventListener("dragenter", onlyWithFiles(dragenter), false);
         dropbox.addEventListener("dragleave", onlyWithFiles(dragleave), false);
         dropbox.addEventListener("dragover", onlyWithFiles(dragover), false);
         dropbox.addEventListener("drop", onlyWithFiles(drop), false);
 
-        var initializedOnBody = false;
-        function onlyWithFiles(fn) {
-            return function() {
-                if (initializedOnBody) {
-                    return;
-                }
-                fn.apply(this, arguments);
-            }
-        }
+        // Bind to body to prevent the dropbox events from firing when it was initialized on the page.
+        document.body.addEventListener("dragstart", bodydragstart, true);
+        document.body.addEventListener("dragend", bodydragend, true);
+        document.body.addEventListener("drop", bodydrop, false);
 
-        function globaldragend(e) {
+        function bodydragend(e) {
             initializedOnBody = false;
         }
 
-        function globaldragstart(e) {
+        function bodydragstart(e) {
             initializedOnBody = true;
         }
 
-        function preventFileRedirect(e) {
+        function bodydrop(e) {
             if (e.dataTransfer.files && e.dataTransfer.files.length ){
                 e.stopPropagation();
                 e.preventDefault();
             }
+        }
+
+        function onlyWithFiles(fn) {
+            return function() {
+                if (!initializedOnBody) {
+                    fn.apply(this, arguments);
+                }
+            };
         }
 
         function drop(e) {
@@ -196,24 +211,27 @@
             }
             processFileList(e.dataTransfer.files, instanceOptions);
         }
+
         function dragenter(e) {
+            e.stopPropagation();
+            e.preventDefault();
             if (dragClass) {
                 addClass(dropbox, dragClass);
             }
-            e.stopPropagation();
-            e.preventDefault();
         }
+
         function dragleave(e) {
             if (dragClass) {
                 removeClass(dropbox, dragClass);
             }
         }
+
         function dragover(e) {
+            e.stopPropagation();
+            e.preventDefault();
             if (dragClass) {
                 addClass(dropbox, dragClass);
             }
-            e.stopPropagation();
-            e.preventDefault();
         }
     }
 
@@ -232,7 +250,7 @@
         }
     }
 
-    // getReadAsMethod: return method name for 'readAs*' - http://dev.w3.org/2006/webapi/FileAPI/#reading-a-file
+    // getReadAsMethod: return method name for 'readAs*' - http://www.w3.org/TR/FileAPI/#reading-a-file
     function getReadAsMethod(type, readAsMap, readAsDefault) {
         for (var r in readAsMap) {
             if (type.match(new RegExp(r))) {
@@ -245,52 +263,54 @@
     // processFileList: read the files with FileReader, send off custom events.
     function processFileList(files, opts) {
 
+        var filesLeft = files.length;
         var group = {
             groupID: getGroupID(),
             files: files,
             started: new Date()
         };
 
-        FileReaderJS.output.push(group);
+        function groupEnd() {
+            group.ended = new Date();
+            opts.on.groupend(group);
+        }
 
-        var filesLeft = files.length;
-        var groupFileDone =	function() {
+        function groupFileDone() {
             if (--filesLeft == 0) {
-                group.ended = new Date();
-                opts.on.groupend(group);
+                groupEnd();
             }
-        };
+        }
 
+        FileReaderJS.output.push(group);
         setupCustomFileProperties(files, group.groupID);
 
         opts.on.groupstart(group);
 
-        // No files in group - call groupend immediately
+        // No files in group - end immediately
         if (!files.length) {
-            group.ended = new Date();
-            opts.on.groupend(group);
+            groupEnd();
+            return;
         }
 
         var sync = FileReaderJS.sync && FileReaderSyncSupport;
         var syncWorker;
 
+        // Only initialize the synchronous worker if the option is enabled - to prevent the overhead
         if (sync) {
             syncWorker = WorkerHelper.getWorker(workerScript, function(e) {
-
                 var file = e.data.file;
+                var result = e.data.result;
 
+console.log("SYNC!!", file, file.extra)
                 // Workers seem to lose the custom property on the file object.
                 if (!file.extra) {
                     file.extra = e.data.extra;
                 }
 
-                if (e.data.result === "error") {
-                    opts.on["error"]({ }, file);
-                }
-                else {
-                    opts.on["load"]({ target: { result: e.data.result }}, file);
-                }
+                // Call error or load event depending on success of the read from the worker.
+                opts.on[result === "error" ? "error" : "load"]({ target: { result: result } }, file);
                 groupFileDone();
+
             });
         }
 
@@ -337,15 +357,11 @@
 
     // checkFileReaderSyncSupport: Create a temporary worker and see if FileReaderSync exists
     function checkFileReaderSyncSupport() {
-        var checkSyncSupportURL = WorkerHelper.getURL(
-            "self.addEventListener('message', function(e) { postMessage(!!FileReaderSync); }, false);"
-        );
-        if (checkSyncSupportURL) {
-            var worker = new Worker(checkSyncSupportURL);
-            worker.onmessage = function(e) {
-                FileReaderSyncSupport = e.data;
-                URL.revokeObjectURL(checkSyncSupportURL);
-            };
+        var worker = WorkerHelper.getWorker(syncDetectionScript, function(e) {
+            FileReaderSyncSupport = e.data;
+        });
+
+        if (worker) {
             worker.postMessage();
         }
     }
@@ -415,4 +431,4 @@
     FileReaderJS.enabled = true;
     checkFileReaderSyncSupport();
 
-})(this);
+})(this, document);
