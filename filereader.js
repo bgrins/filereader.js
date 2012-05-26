@@ -7,9 +7,8 @@
 (function(global) {
 
     var FileReader = global.FileReader;
-    var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
-    var URL = window.URL || window.webkitURL;
     var FileReaderSyncSupport = false;
+    var URL = window.URL || window.webkitURL;
     var workerScript = "self.addEventListener('message', function(e) { var data=e.data; try { var reader = new FileReaderSync; postMessage({ result: reader[data.readAs](data.file), extra: data.extra, file: data.file})} catch(e){ postMessage({ result:'error', extra:data.extra, file:data.file}); } }, false);";
     var fileReaderEvents = ['loadstart', 'progress', 'load', 'abort', 'error', 'loadend'];
 
@@ -47,12 +46,18 @@
     if (typeof(jQuery) !== "undefined") {
         jQuery.fn.fileReaderJS = function(opts) {
             return this.each(function() {
+                if (!FileReaderJS.enabled) {
+                    return;
+                }
                 $(this).is("input") ? setupInput(this, opts) : setupDrop(this, opts);
             });
         };
 
         jQuery.fn.fileClipboard = function(opts) {
             return this.each(function() {
+                if (!FileReaderJS.enabled) {
+                    return;
+                }
                 setupClipboard(this, opts);
             });
         };
@@ -67,7 +72,6 @@
     var WorkerHelper = (function() {
 
         var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
-        var URL = window.URL || window.webkitURL;
 
         function getURL (script) {
             if (window.Worker && BlobBuilder && URL) {
@@ -97,10 +101,8 @@
 
     })();
 
+    // setupClipboard: bind to clipboard events (intended for document.body)
     function setupClipboard(element, opts) {
-        if (!FileReaderJS.enabled) {
-            return;
-        }
 
         var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
         element.addEventListener("paste", onpaste, false);
@@ -132,9 +134,6 @@
 
     // setupInput: bind the 'change' event to an input[type=file]
     function setupInput(input, opts) {
-        if (!FileReaderJS.enabled) {
-            return;
-        }
 
         var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
 
@@ -146,9 +145,6 @@
 
     // setupDrop: bind the 'drop' event for a DOM element
     function setupDrop(dropbox, opts) {
-        if (!FileReaderJS.enabled) {
-            return;
-        }
 
         var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
         var dragClass = instanceOptions.dragClass;
