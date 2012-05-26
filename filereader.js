@@ -10,7 +10,7 @@
     var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
     var URL = window.URL || window.webkitURL;
     var FileReaderSyncSupport = false;
-    var workerScript = "self.addEventListener('message',function(e) { var data=e.data; try{ var reader = new FileReaderSync; postMessage({ result: reader[data.readAs](data.file), extra: data.extra, file: data.file})} catch(e){ postMessage({ result:'error', extra:data.extra, file:data.file}); } }, false);";
+    var workerScript = "self.addEventListener('message', function(e) { var data=e.data; try { var reader = new FileReaderSync; postMessage({ result: reader[data.readAs](data.file), extra: data.extra, file: data.file})} catch(e){ postMessage({ result:'error', extra:data.extra, file:data.file}); } }, false);";
     var fileReaderEvents = ['loadstart', 'progress', 'load', 'abort', 'error', 'loadend'];
 
     var FileReaderJS = global.FileReaderJS = {
@@ -338,7 +338,7 @@
     // checkFileReaderSyncSupport: Create a temporary worker and see if FileReaderSync exists
     function checkFileReaderSyncSupport() {
         var checkSyncSupportURL = WorkerHelper.getURL(
-            "self.addEventListener('message',function(e){ postMessage(!!FileReaderSync); }, false);"
+            "self.addEventListener('message', function(e) { postMessage(!!FileReaderSync); }, false);"
         );
         if (checkSyncSupportURL) {
             var worker = new Worker(checkSyncSupportURL);
