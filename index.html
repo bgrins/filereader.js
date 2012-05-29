@@ -2,36 +2,94 @@
 <html>
 <head>
 	<meta charset="utf-8" />
-	
-	<link rel="stylesheet" href="docs/bootstrap.css" />
+
+	<link rel="stylesheet" href="demo/bootstrap.css" />
 	<style type='text/css'>
 
 	html, body { background-color: #eee; }
-	body { padding-top: 15px; }
+	body { padding-top: 15px; background: url(demo/light_toast.png); }
 
-	.container-fluid > .sidebar{ top:20px; left:auto; right:20px;width:260px; position:fixed; bottom:20px; min-height: 40px; overflow-y: auto;}
+	#sidebar
+	{
+		left:auto;
+		right:20px;
+		width:260px;
+		position:fixed;
+		min-height: 40px;
+		overflow-y: auto;
+		background: white;
+		top: -10px;
+		bottom: -10px;
+		margin: 0;
+		border: solid 2px #333;
+		box-shadow: 0 0 10px #999;
+	}
+	#sidebar.drag
+	{
+		background: #f9b660;
+	}
+	.offset1 {
+		margin-left: 60px;
+	}
+	.offset2 {
+		margin-left: 80px;
+	}
+
 	.container-fluid > .content{ margin-right:340px; margin-left:0;}
-	
+
 	#dropzone { padding:20px; border: solid 3px #050; text-align: center;}
 	#dropzone.drag { border: solid 3px #0f0; }
-	
+
 	#file-list:empty:before { content: "Add a file using one of the methods to the left and it will show up here."; display:block;  }
-	#file-list { margin-top:10px; }
+	#file-list { margin: 2px; }
 	#file-list li { margin:10px 0; list-style: none; }
 	#file-list li > img { max-width: 30px; max-height: 20px; margin-right: 3px; }
 	#file-list li .modal img { max-width: 400px; max-height: 400px; }
-    
+
 	#file-list li.error { color: red; }
 	#file-list li.error a.btn { display:none; }
 	#file-list .group { font-size:1.1em; color:#666; border-bottom: dashed 1px #999; }
 	#file-list pre { margin:20px 0; border: solid 2px #8d8; display:none; }
 	#file-list pre.done { border-color: #8d8; }
- 	
-    .row {
-        margin-bottom: 20px;
+
+	.arrow_box {
+		position: relative;
+		background: #ffffff;
+		border: 2px solid #333;
+	}
+	.arrow_box:after, .arrow_box:before {
+		left: 100%;
+		border: solid transparent;
+		content: " ";
+		height: 0;
+		width: 0;
+		position: absolute;
+		pointer-events: none;
+	}
+	.arrow_box:after {
+		border-left-color: #ffffff;
+		border-width: 30px;
+		top: 50%;
+		margin-top: -30px;
+	}
+	.arrow_box:before {
+		border-left-color: #333;
+		border-width: 33px;
+		top: 50%;
+		margin-top: -33px;
+	}
+
+    .row p {
+        margin-bottom: 12px;
+    }
+    .row h2 {
+    	margin: 10px 0;
     }
     #demo {
         list-style-type: none;
+        border-radius: 5px;
+		margin-right: -7px;
+		padding: 15px;
     }
     #sync + strong {
         color: #dec857;
@@ -56,26 +114,30 @@
     }
  	.done .filename { color: #357048; }
 	</style>
-	
+
 </head>
 
 <body>
 
     <div class="container-fluid">
-	  
+
       <div class="content">
         <div class="page-header">
           <h1><a href='http://bgrins.github.com/filereader.js/'>FileReader.js</a> <small> - Read Files with JavaScript!</small></h1>
-		  
+
         </div>
         <div class="row">
 			<div class="offset1">
 				<h2>Read Files In The Browser</h2>
 				<p>
-				FileReader.js is intended to make accessing files via the <a href='http://dev.w3.org/2006/webapi/FileAPI/#FileReader-interface'>FileReader interface</a> easier.  
+				FileReader.js is intended to make accessing files via the <a href='http://dev.w3.org/2006/webapi/FileAPI/#FileReader-interface'>FileReader interface</a> easier.
                 Read more about <a href='http://www.briangrinstead.com/blog/filereaderjs'>the motivation behind filereader.js</a>.
 				</p>
-				<h3>No Dependancies</h3>
+			</div>
+		</div>
+        <div class="row">
+			<div class="offset1">
+				<h2>No Dependancies</h2>
 				<p>
 				FileReader.js does not require any other libraries.  <strong>If</strong> you do use jQuery, there is a small plugin wrapping up the functionlity though!
 				</p>
@@ -85,8 +147,16 @@
 			<div class="offset1">
 				<h2>Source Code</h2>
 				<p>
-                <a class='btn btn-primary' href='http://github.com/bgrins/filereader.js'>Project On Github</a>
-                <a class='btn' href='https://raw.github.com/bgrins/filereader.js/master/filereader.js'>Just the JavaScript</a>
+                	<a class='btn btn-large btn-primary' href='http://github.com/bgrins/filereader.js'>View Project On Github</a>
+            	</p>
+            	<p>
+            		Or you can jump straight to the
+                	<a href='https://raw.github.com/bgrins/filereader.js/master/filereader.js'>filereader.js</a> or
+                	<a href='https://raw.github.com/bgrins/filereader.js/master/filereader.min.js'>filereader.min.js</a>
+                	if you are in a hurry.
+                </p>
+                <p>
+                	If you've got some time to look around, check out the <a href='docs/filereader.html' target="_blank">annotated source code</a>!
                 </p>
 			</div>
 		</div>
@@ -97,26 +167,26 @@
 			</div>
 		</div>
         <div class="row">
-			<ul id='demo' class='offset2'>
+			<ul id='demo' class='offset2 arrow_box'>
 				<li class=''>
 					<h3>File Input</h3>
-					
+
 					<p>You can access files that users select via an input[type=file].  Try it out below:</p>
 					<form id='file-form' method="post" enctype="multipart/form-data">
 						<input type="hidden" name="extra-data" multiple />
 						<input type="file" id="file-input" name="file-input" multiple />
 					</form>
-					
+
 				</li>
 				<li class="">
 					<h3>Drop Zone</h3>
-					
+
 					<p id='dropzone'>
 						Drag and drop files from your desktop here (or select them from the input above).<br />
 						They will be read in browser.<br />
-                        <img src='docs/arrow.png' width='50' /><br />
+                        <img src='demo/arrow.png' width='50' /><br />
 					</p>
-					
+
 				</li>
 				<li class="">
 					<h3>Clipboard</h3>
@@ -130,22 +200,74 @@
 			<div class="offset1">
 				<h2>Usage</h2>
 				<p>
-					<strong>There is no jQuery or any other library dependancy for FileReader.js</strong>.  It will work with a simple call to 
+					<strong>There is no jQuery or any other library dependancy for FileReader.js</strong>.  It will work with a simple call to
 <pre class="prettyprint">
-	&lt;script type='text/javascript' src='filereader.js'&gt;&lt;/script&gt;
+&lt;script type='text/javascript' src='filereader.js'&gt;&lt;/script&gt;
 </pre>
 <pre class="prettyprint">
-	FileReaderJS.setupInput(document.getElementById('file-input'), opts);
-	FileReaderJS.setupDrop(document.getElementById('dropzone'), opts);
-	FileReaderJS.setupClipboard(document.body, opts);
+var opts = {
+    dragClass: "drag",
+    accept: false,
+    readAsMap: {
+        'image/*': 'DataURL',
+        'text/*' : 'Text'
+    },
+    readAsDefault: 'BinaryString',
+    on: {,
+        beforestart: function(e, file) {
+        	// return false if you want to skip this file
+
+    	},
+        loadstart: function(e, file) {
+        	// Native ProgressEvent
+
+    	},
+        progress: function(e, file) {
+        	// Native ProgressEvent
+
+    	},
+        load: function(e, file) {
+        	// Native ProgressEvent
+
+    	},
+        error: function(e, file) {
+        	// Native ProgressEvent
+
+    	},
+        loadend: function(e, file) {
+        	// Native ProgressEvent
+
+    	},
+        abort: function(e, file) {
+        	// Native ProgressEvent
+
+    	},
+        skip: function(e, file) {
+        	// Called when a file is skipped.  This happens when:
+        	// 	1) A file doesn't match the accept option
+        	// 	2) false is returned in the beforestart callback
+    	},
+        groupstart: function(group) {
+
+    	},
+        groupend: function(group) {
+
+    	}
+    }
+};
+</pre>
+<pre class="prettyprint">
+FileReaderJS.setupInput(document.getElementById('file-input'), opts);
+FileReaderJS.setupDrop(document.getElementById('dropzone'), opts);
+FileReaderJS.setupClipboard(document.body, opts);
 </pre>
 				</p>
 				<p>
-					IF you do use jQuery, you could use it as such:
+					If you do use jQuery, you could use it as such:
 				</p>
 <pre class="prettyprint">
-	$("#file-input, #dropzone").fileReaderJS(opts);
-	$("body").fileClipboard(opts);
+$("#file-input, #dropzone").fileReaderJS(opts);
+$("body").fileClipboard(opts);
 </pre>
 			</div>
 		</div>
@@ -164,11 +286,49 @@
 				</p>
 			</div>
 		</div>
-			
+        <div class="row">
+			<div class="offset1">
+				<h2>Samples</h2>
+				<p>
+					Some sites have already implemented FileReader.js - check out their code to get an idea of how it is being used!
+					<ul>
+						<li>
+							<a href='http://mothereffinganimatedgif.com/'>mothereffinganimatedgif</a> - <a href='https://github.com/h5bp/mothereffinganimatedgif/'>source code</a>.
+						</li>
+						<li>
+							<a href='http://instantsprite.com/'>Instant Sprite CSS Sprite Generator</a> - <a href='https://github.com/bgrins/InstantSprite'>source code</a>.
+						</li>
+					</ul>
+				</p>
+			</div>
+		</div>
+        <div class="row">
+			<div class="offset1">
+				<h2>Resources</h2>
+				<p>
+					I found a lot of information while implementing this plugin.  Here are some resources that helped:
+					<ul>
+						<li>
+							<a href='http://www.w3.org/TR/FileAPI/#dfn-filereader'>FileReader specification</a>
+						</li>
+						<li>
+							<a href='http://www.w3.org/TR/FileAPI/#FileReaderSync'>FileReaderSync specification</a>
+						</li>
+						<li>
+							<a href='ttp://www.w3.org/TR/FileAPI/#event-handler-attributes-section'>File API Event Handler specification</a>
+						</li>
+						<li>
+							<a href='http://caniuse.com/#feat=fileapi'>Full Browser Support Graph for File API</a>
+						</li>
+					</ul>
+				</p>
+			</div>
+		</div>
       </div>
 
-      <div class="sidebar well">
-          <h5>Loaded Files</h5>
+      <div class="sidebar well" id="sidebar">
+          <h4>Demo - Loaded Files</h4>
+            <hr />
             <p>
             <form class='form'>
             <fieldset>
@@ -179,6 +339,7 @@
             </fieldset>
             </form>
             </p>
+            <hr />
 			<ul id='file-list'>
 			</ul>
       </div>
@@ -187,23 +348,23 @@
       </footer>
 
     </div>
-	
+
+	<script src="demo/jquery-1.7.1.js"></script>
 	<script type='text/javascript' src='filereader.js'></script>
-	<script src="docs/jquery-1.7.1.js"></script>
-	<script src="docs/bootstrap.js"></script>
+	<script src="demo/bootstrap.js"></script>
 	<script type='text/javascript'>
 
 	var filelist = document.getElementById("file-list");
-            
+
 
 	function groupTemplate(groupID, files) {
 		var html = [];
 		for (var i = 0; i < files.length; i++) {
 			var file = files[i];
 			var id = "group_" + groupID + "_file_" + file.extra.fileID;
-			
+
 			html.push(
-				"<li id='" + id + "' data-fileid='" + file.extra.fileID + "' data-groupid='"+ groupID +"'>" + 
+				"<li id='" + id + "' data-fileid='" + file.extra.fileID + "' data-groupid='"+ groupID +"'>" +
 					"<span class='filename'>" + file.name + "</span> " +
                     "<br />" +
 					"<span class='details'><a href='#' class='btn'>details</a></span> " +
@@ -212,9 +373,9 @@
 				"</li>"
 			);
 		}
-		
+
 		var start = "<li id='group_" + groupID + "' class='group'>Group: " + groupID + " (" + files.length + " files) </li>";
-		
+
 		return  start + html.join('');
 	}
 
@@ -222,13 +383,13 @@
 		on: {
 			load: function(e, file) {
 				var fileDiv = $("#group_" + file.extra.groupID + "_file_" + file.extra.fileID).addClass("done");
-                
+
                 if (file.type.match(/image/)) {
                     // Create a thumbnail and add it to the output if it is an image
                     var img = new Image();
                     img.onload = function() {
                         fileDiv.find(".modal").append(img);
-                        
+
                         fileDiv.prepend($(img).clone());
                     };
                     img.src = e.target.result;
@@ -236,20 +397,20 @@
                 else {
                     //fileDiv.find(".modal").append($("<div />").text(e.target.result));
                 }
-				
+
 			},
 			error: function(e, file) {
 				$("#group_" + file.extra.groupID + "_file_" + file.extra.fileID).addClass("error");
             },
 			groupstart: function(group) {
 				$(filelist).append(groupTemplate(group.groupID, group.files));
-                
+
                 $(filelist).find(".details a:not(.initialized)").click(function() {
                     $(this).closest("li").find(".modal").modal('show');
                 })
-                
+
                 $(filelist).find(".modal:not(.initialized)").addClass("initialized").modal({ show: false }).on("show", function() {
-                
+
                 });
 			},
 			groupend: function(group) {
@@ -259,11 +420,12 @@
 			}
 		}
 	};
-	
+
 	FileReaderJS.setupInput(document.getElementById('file-input'), opts);
 	FileReaderJS.setupDrop(document.getElementById('dropzone'), opts);
+	FileReaderJS.setupDrop(document.getElementById('sidebar'), opts);
 	FileReaderJS.setupClipboard(document.body, opts);
-	
+
     $(function() {
         $(".sidebar").on('click', 'input', function() {
             FileReaderJS.sync = $("#sync").is(":checked");

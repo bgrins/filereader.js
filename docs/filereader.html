@@ -1,0 +1,351 @@
+<!DOCTYPE html>  <html> <head>   <title>filereader.js</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               filereader.js             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>                            </td>             <td class="code">               <div class="highlight"><pre><span class="cm">/*!</span>
+<span class="cm">    FileReader.js - a lightweight wrapper for common FileReader usage.</span>
+<span class="cm">    Copyright 2012 Brian Grinstead - MIT License.</span>
+<span class="cm">    See http://github.com/bgrins/filereader.js for documentation.</span>
+<span class="cm">*/</span>
+
+<span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nb">window</span><span class="p">,</span> <span class="nb">document</span><span class="p">)</span> <span class="p">{</span>
+
+    <span class="kd">var</span> <span class="nx">FileReader</span> <span class="o">=</span> <span class="nb">window</span><span class="p">.</span><span class="nx">FileReader</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">FileReaderSyncSupport</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">workerScript</span> <span class="o">=</span> <span class="s2">&quot;self.addEventListener(&#39;message&#39;, function(e) { var data=e.data; try { var reader = new FileReaderSync; postMessage({ result: reader[data.readAs](data.file), extra: data.extra, file: data.file})} catch(e){ postMessage({ result:&#39;error&#39;, extra:data.extra, file:data.file}); } }, false);&quot;</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">syncDetectionScript</span> <span class="o">=</span> <span class="s2">&quot;self.addEventListener(&#39;message&#39;, function(e) { postMessage(!!FileReaderSync); }, false);&quot;</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">fileReaderEvents</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;loadstart&#39;</span><span class="p">,</span> <span class="s1">&#39;progress&#39;</span><span class="p">,</span> <span class="s1">&#39;load&#39;</span><span class="p">,</span> <span class="s1">&#39;abort&#39;</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;loadend&#39;</span><span class="p">];</span>
+
+    <span class="kd">var</span> <span class="nx">FileReaderJS</span> <span class="o">=</span> <span class="nb">window</span><span class="p">.</span><span class="nx">FileReaderJS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="nx">enabled</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+        <span class="nx">setupInput</span><span class="o">:</span> <span class="nx">setupInput</span><span class="p">,</span>
+        <span class="nx">setupDrop</span><span class="o">:</span> <span class="nx">setupDrop</span><span class="p">,</span>
+        <span class="nx">setupClipboard</span><span class="o">:</span> <span class="nx">setupClipboard</span><span class="p">,</span>
+        <span class="nx">sync</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+        <span class="nx">output</span><span class="o">:</span> <span class="p">[],</span>
+        <span class="nx">opts</span><span class="o">:</span> <span class="p">{</span>
+            <span class="nx">dragClass</span><span class="o">:</span> <span class="s2">&quot;drag&quot;</span><span class="p">,</span>
+            <span class="nx">accept</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+            <span class="nx">readAsDefault</span><span class="o">:</span> <span class="s1">&#39;BinaryString&#39;</span><span class="p">,</span>
+            <span class="nx">readAsMap</span><span class="o">:</span> <span class="p">{</span>
+                <span class="s1">&#39;image/*&#39;</span><span class="o">:</span> <span class="s1">&#39;DataURL&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;text/*&#39;</span> <span class="o">:</span> <span class="s1">&#39;Text&#39;</span>
+            <span class="p">},</span>
+            <span class="nx">on</span><span class="o">:</span> <span class="p">{</span>
+                <span class="nx">loadstart</span><span class="o">:</span> <span class="nx">noop</span><span class="p">,</span>
+                <span class="nx">progress</span><span class="o">:</span> <span class="nx">noop</span><span class="p">,</span>
+                <span class="nx">load</span><span class="o">:</span> <span class="nx">noop</span><span class="p">,</span>
+                <span class="nx">abort</span><span class="o">:</span> <span class="nx">noop</span><span class="p">,</span>
+                <span class="nx">error</span><span class="o">:</span> <span class="nx">noop</span><span class="p">,</span>
+                <span class="nx">loadend</span><span class="o">:</span> <span class="nx">noop</span><span class="p">,</span>
+                <span class="nx">skip</span><span class="o">:</span> <span class="nx">noop</span><span class="p">,</span>
+                <span class="nx">groupstart</span><span class="o">:</span> <span class="nx">noop</span><span class="p">,</span>
+                <span class="nx">groupend</span><span class="o">:</span> <span class="nx">noop</span><span class="p">,</span>
+                <span class="nx">beforestart</span><span class="o">:</span> <span class="nx">noop</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>Setup jQuery plugin (if available)</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="nx">jQuery</span><span class="p">)</span> <span class="o">!==</span> <span class="s2">&quot;undefined&quot;</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">jQuery</span><span class="p">.</span><span class="nx">fn</span><span class="p">.</span><span class="nx">fileReaderJS</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">opts</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">each</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+                <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">is</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span> <span class="o">?</span> <span class="nx">setupInput</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">opts</span><span class="p">)</span> <span class="o">:</span> <span class="nx">setupDrop</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">opts</span><span class="p">);</span>
+            <span class="p">});</span>
+        <span class="p">};</span>
+
+        <span class="nx">jQuery</span><span class="p">.</span><span class="nx">fn</span><span class="p">.</span><span class="nx">fileClipboard</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">opts</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">each</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+                <span class="nx">setupClipboard</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">opts</span><span class="p">);</span>
+            <span class="p">});</span>
+        <span class="p">};</span>
+    <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>Not all browsers support the FileReader interface.  Return with the enabled bit = false.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">FileReader</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>WorkerHelper is a little wrapper for generating web weorkers from strings</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">var</span> <span class="nx">WorkerHelper</span> <span class="o">=</span> <span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+
+        <span class="kd">var</span> <span class="nx">URL</span> <span class="o">=</span> <span class="nb">window</span><span class="p">.</span><span class="nx">URL</span> <span class="o">||</span> <span class="nb">window</span><span class="p">.</span><span class="nx">webkitURL</span><span class="p">;</span>
+        <span class="kd">var</span> <span class="nx">BlobBuilder</span> <span class="o">=</span> <span class="nb">window</span><span class="p">.</span><span class="nx">BlobBuilder</span> <span class="o">||</span> <span class="nb">window</span><span class="p">.</span><span class="nx">WebKitBlobBuilder</span> <span class="o">||</span> <span class="nb">window</span><span class="p">.</span><span class="nx">MozBlobBuilder</span><span class="p">;</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>May need to get just the URL in case it is needed for things beyond just creating a worker.</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="kd">function</span> <span class="nx">getURL</span> <span class="p">(</span><span class="nx">script</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">Worker</span> <span class="o">&amp;&amp;</span> <span class="nx">BlobBuilder</span> <span class="o">&amp;&amp;</span> <span class="nx">URL</span><span class="p">)</span> <span class="p">{</span>
+                <span class="kd">var</span> <span class="nx">bb</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">BlobBuilder</span><span class="p">();</span>
+                <span class="nx">bb</span><span class="p">.</span><span class="nx">append</span><span class="p">(</span><span class="nx">script</span><span class="p">);</span>
+                <span class="k">return</span> <span class="nx">URL</span><span class="p">.</span><span class="nx">createObjectURL</span><span class="p">(</span><span class="nx">bb</span><span class="p">.</span><span class="nx">getBlob</span><span class="p">());</span>
+            <span class="p">}</span>
+
+            <span class="k">return</span> <span class="kc">null</span><span class="p">;</span>
+        <span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>If there is no need to revoke a URL later, or do anything fancy then just return the worker.</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="kd">function</span> <span class="nx">getWorker</span> <span class="p">(</span><span class="nx">script</span><span class="p">,</span> <span class="nx">onmessage</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kd">var</span> <span class="nx">url</span> <span class="o">=</span> <span class="nx">getURL</span><span class="p">(</span><span class="nx">script</span><span class="p">);</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">url</span><span class="p">)</span> <span class="p">{</span>
+                <span class="kd">var</span> <span class="nx">worker</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Worker</span><span class="p">(</span><span class="nx">url</span><span class="p">);</span>
+                <span class="nx">worker</span><span class="p">.</span><span class="nx">onmessage</span> <span class="o">=</span> <span class="nx">onmessage</span><span class="p">;</span>
+                <span class="k">return</span> <span class="nx">worker</span><span class="p">;</span>
+            <span class="p">}</span>
+
+            <span class="k">return</span> <span class="kc">null</span><span class="p">;</span>
+        <span class="p">};</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="nx">getURL</span><span class="o">:</span> <span class="nx">getURL</span><span class="p">,</span>
+            <span class="nx">getWorker</span><span class="o">:</span> <span class="nx">getWorker</span>
+        <span class="p">};</span>
+
+    <span class="p">})();</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>setupClipboard: bind to clipboard events (intended for document.body)</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">setupClipboard</span><span class="p">(</span><span class="nx">element</span><span class="p">,</span> <span class="nx">opts</span><span class="p">)</span> <span class="p">{</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">FileReaderJS</span><span class="p">.</span><span class="nx">enabled</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">return</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="kd">var</span> <span class="nx">instanceOptions</span> <span class="o">=</span> <span class="nx">extend</span><span class="p">(</span><span class="nx">extend</span><span class="p">({},</span> <span class="nx">FileReaderJS</span><span class="p">.</span><span class="nx">opts</span><span class="p">),</span> <span class="nx">opts</span><span class="p">);</span>
+
+        <span class="nx">element</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s2">&quot;paste&quot;</span><span class="p">,</span> <span class="nx">onpaste</span><span class="p">,</span> <span class="kc">false</span><span class="p">);</span>
+
+        <span class="kd">function</span> <span class="nx">onpaste</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kd">var</span> <span class="nx">files</span> <span class="o">=</span> <span class="p">[];</span>
+            <span class="kd">var</span> <span class="nx">clipboardData</span> <span class="o">=</span> <span class="nx">e</span><span class="p">.</span><span class="nx">clipboardData</span> <span class="o">||</span> <span class="p">{};</span>
+            <span class="kd">var</span> <span class="nx">items</span> <span class="o">=</span> <span class="nx">clipboardData</span><span class="p">.</span><span class="nx">items</span> <span class="o">||</span> <span class="p">[];</span>
+
+            <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">items</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+                <span class="kd">var</span> <span class="nx">file</span> <span class="o">=</span> <span class="nx">items</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">getAsFile</span><span class="p">();</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="nx">file</span><span class="p">)</span> <span class="p">{</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Create a fake file name for images from clipboard, since this data doesn't get sent</p>             </td>             <td class="code">               <div class="highlight"><pre>                    <span class="kd">var</span> <span class="nx">matches</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">RegExp</span><span class="p">(</span><span class="s2">&quot;/\(.*\)&quot;</span><span class="p">).</span><span class="nx">exec</span><span class="p">(</span><span class="nx">file</span><span class="p">.</span><span class="nx">type</span><span class="p">);</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">file</span><span class="p">.</span><span class="nx">name</span> <span class="o">&amp;&amp;</span> <span class="nx">matches</span><span class="p">)</span> <span class="p">{</span>
+                        <span class="kd">var</span> <span class="nx">extension</span> <span class="o">=</span> <span class="nx">matches</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+                        <span class="nx">file</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="s2">&quot;clipboard&quot;</span> <span class="o">+</span> <span class="nx">i</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="nx">extension</span><span class="p">;</span>
+                    <span class="p">}</span>
+
+                    <span class="nx">files</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">file</span><span class="p">);</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="nx">files</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">processFileList</span><span class="p">(</span><span class="nx">files</span><span class="p">,</span> <span class="nx">instanceOptions</span><span class="p">);</span>
+                <span class="nx">e</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">();</span>
+                <span class="nx">e</span><span class="p">.</span><span class="nx">stopPropagation</span><span class="p">();</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">};</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>setupInput: bind the 'change' event to an input[type=file]</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">setupInput</span><span class="p">(</span><span class="nx">input</span><span class="p">,</span> <span class="nx">opts</span><span class="p">)</span> <span class="p">{</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">FileReaderJS</span><span class="p">.</span><span class="nx">enabled</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">return</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="kd">var</span> <span class="nx">instanceOptions</span> <span class="o">=</span> <span class="nx">extend</span><span class="p">(</span><span class="nx">extend</span><span class="p">({},</span> <span class="nx">FileReaderJS</span><span class="p">.</span><span class="nx">opts</span><span class="p">),</span> <span class="nx">opts</span><span class="p">);</span>
+
+        <span class="nx">input</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s2">&quot;change&quot;</span><span class="p">,</span> <span class="nx">inputChange</span><span class="p">,</span> <span class="kc">false</span><span class="p">);</span>
+        <span class="nx">input</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s2">&quot;drop&quot;</span><span class="p">,</span> <span class="nx">inputDrop</span><span class="p">,</span> <span class="kc">false</span><span class="p">);</span>
+
+        <span class="kd">function</span> <span class="nx">inputChange</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">processFileList</span><span class="p">(</span><span class="nx">input</span><span class="p">.</span><span class="nx">files</span><span class="p">,</span> <span class="nx">instanceOptions</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="kd">function</span> <span class="nx">inputDrop</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">e</span><span class="p">.</span><span class="nx">stopPropagation</span><span class="p">();</span>
+            <span class="nx">e</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">();</span>
+            <span class="nx">processFileList</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">dataTransfer</span><span class="p">.</span><span class="nx">files</span><span class="p">,</span> <span class="nx">instanceOptions</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>setupDrop: bind the 'drop' event for a DOM element</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">setupDrop</span><span class="p">(</span><span class="nx">dropbox</span><span class="p">,</span> <span class="nx">opts</span><span class="p">)</span> <span class="p">{</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">FileReaderJS</span><span class="p">.</span><span class="nx">enabled</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">return</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="kd">var</span> <span class="nx">instanceOptions</span> <span class="o">=</span> <span class="nx">extend</span><span class="p">(</span><span class="nx">extend</span><span class="p">({},</span> <span class="nx">FileReaderJS</span><span class="p">.</span><span class="nx">opts</span><span class="p">),</span> <span class="nx">opts</span><span class="p">);</span>
+        <span class="kd">var</span> <span class="nx">dragClass</span> <span class="o">=</span> <span class="nx">instanceOptions</span><span class="p">.</span><span class="nx">dragClass</span><span class="p">;</span>
+        <span class="kd">var</span> <span class="nx">initializedOnBody</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <p>Bind drag events to the dropbox to add the class while dragging, and accept the drop data transfer.</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">dropbox</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s2">&quot;dragenter&quot;</span><span class="p">,</span> <span class="nx">onlyWithFiles</span><span class="p">(</span><span class="nx">dragenter</span><span class="p">),</span> <span class="kc">false</span><span class="p">);</span>
+        <span class="nx">dropbox</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s2">&quot;dragleave&quot;</span><span class="p">,</span> <span class="nx">onlyWithFiles</span><span class="p">(</span><span class="nx">dragleave</span><span class="p">),</span> <span class="kc">false</span><span class="p">);</span>
+        <span class="nx">dropbox</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s2">&quot;dragover&quot;</span><span class="p">,</span> <span class="nx">onlyWithFiles</span><span class="p">(</span><span class="nx">dragover</span><span class="p">),</span> <span class="kc">false</span><span class="p">);</span>
+        <span class="nx">dropbox</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s2">&quot;drop&quot;</span><span class="p">,</span> <span class="nx">onlyWithFiles</span><span class="p">(</span><span class="nx">drop</span><span class="p">),</span> <span class="kc">false</span><span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <p>Bind to body to prevent the dropbox events from firing when it was initialized on the page.</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s2">&quot;dragstart&quot;</span><span class="p">,</span> <span class="nx">bodydragstart</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+        <span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s2">&quot;dragend&quot;</span><span class="p">,</span> <span class="nx">bodydragend</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+        <span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s2">&quot;drop&quot;</span><span class="p">,</span> <span class="nx">bodydrop</span><span class="p">,</span> <span class="kc">false</span><span class="p">);</span>
+
+        <span class="kd">function</span> <span class="nx">bodydragend</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">initializedOnBody</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="kd">function</span> <span class="nx">bodydragstart</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">initializedOnBody</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="kd">function</span> <span class="nx">bodydrop</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">dataTransfer</span><span class="p">.</span><span class="nx">files</span> <span class="o">&amp;&amp;</span> <span class="nx">e</span><span class="p">.</span><span class="nx">dataTransfer</span><span class="p">.</span><span class="nx">files</span><span class="p">.</span><span class="nx">length</span> <span class="p">){</span>
+                <span class="nx">e</span><span class="p">.</span><span class="nx">stopPropagation</span><span class="p">();</span>
+                <span class="nx">e</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">();</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="kd">function</span> <span class="nx">onlyWithFiles</span><span class="p">(</span><span class="nx">fn</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+                <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">initializedOnBody</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="nx">fn</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">arguments</span><span class="p">);</span>
+                <span class="p">}</span>
+            <span class="p">};</span>
+        <span class="p">}</span>
+
+        <span class="kd">function</span> <span class="nx">drop</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">e</span><span class="p">.</span><span class="nx">stopPropagation</span><span class="p">();</span>
+            <span class="nx">e</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">();</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">dragClass</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">removeClass</span><span class="p">(</span><span class="nx">dropbox</span><span class="p">,</span> <span class="nx">dragClass</span><span class="p">);</span>
+            <span class="p">}</span>
+            <span class="nx">processFileList</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">dataTransfer</span><span class="p">.</span><span class="nx">files</span><span class="p">,</span> <span class="nx">instanceOptions</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="kd">function</span> <span class="nx">dragenter</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">e</span><span class="p">.</span><span class="nx">stopPropagation</span><span class="p">();</span>
+            <span class="nx">e</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">();</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">dragClass</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">addClass</span><span class="p">(</span><span class="nx">dropbox</span><span class="p">,</span> <span class="nx">dragClass</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="kd">function</span> <span class="nx">dragleave</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">dragClass</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">removeClass</span><span class="p">(</span><span class="nx">dropbox</span><span class="p">,</span> <span class="nx">dragClass</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="kd">function</span> <span class="nx">dragover</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">e</span><span class="p">.</span><span class="nx">stopPropagation</span><span class="p">();</span>
+            <span class="nx">e</span><span class="p">.</span><span class="nx">preventDefault</span><span class="p">();</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">dragClass</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">addClass</span><span class="p">(</span><span class="nx">dropbox</span><span class="p">,</span> <span class="nx">dragClass</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <p>setupCustomFileProperties: modify the file object with extra properties</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">setupCustomFileProperties</span><span class="p">(</span><span class="nx">files</span><span class="p">,</span> <span class="nx">groupID</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">files</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kd">var</span> <span class="nx">file</span> <span class="o">=</span> <span class="nx">files</span><span class="p">[</span><span class="nx">i</span><span class="p">];</span>
+            <span class="nx">file</span><span class="p">.</span><span class="nx">extra</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="nx">nameNoExtension</span><span class="o">:</span> <span class="nx">file</span><span class="p">.</span><span class="nx">name</span><span class="p">.</span><span class="nx">substring</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nx">file</span><span class="p">.</span><span class="nx">name</span><span class="p">.</span><span class="nx">lastIndexOf</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)),</span>
+                <span class="nx">extension</span><span class="o">:</span> <span class="nx">file</span><span class="p">.</span><span class="nx">name</span><span class="p">.</span><span class="nx">substring</span><span class="p">(</span><span class="nx">file</span><span class="p">.</span><span class="nx">name</span><span class="p">.</span><span class="nx">lastIndexOf</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="nx">fileID</span><span class="o">:</span> <span class="nx">i</span><span class="p">,</span>
+                <span class="nx">uniqueID</span><span class="o">:</span> <span class="nx">getUniqueID</span><span class="p">(),</span>
+                <span class="nx">groupID</span><span class="o">:</span> <span class="nx">groupID</span><span class="p">,</span>
+                <span class="nx">prettySize</span><span class="o">:</span> <span class="nx">prettySize</span><span class="p">(</span><span class="nx">file</span><span class="p">.</span><span class="nx">size</span><span class="p">)</span>
+            <span class="p">};</span>
+        <span class="p">}</span>
+    <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <p>getReadAsMethod: return method name for 'readAs*' - http://www.w3.org/TR/FileAPI/#reading-a-file</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">getReadAsMethod</span><span class="p">(</span><span class="nx">type</span><span class="p">,</span> <span class="nx">readAsMap</span><span class="p">,</span> <span class="nx">readAsDefault</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">r</span> <span class="k">in</span> <span class="nx">readAsMap</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">type</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="k">new</span> <span class="nb">RegExp</span><span class="p">(</span><span class="nx">r</span><span class="p">)))</span> <span class="p">{</span>
+                <span class="k">return</span> <span class="s1">&#39;readAs&#39;</span> <span class="o">+</span> <span class="nx">readAsMap</span><span class="p">[</span><span class="nx">r</span><span class="p">];</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="s1">&#39;readAs&#39;</span> <span class="o">+</span> <span class="nx">readAsDefault</span><span class="p">;</span>
+    <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-15">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-15">&#182;</a>               </div>               <p>processFileList: read the files with FileReader, send off custom events.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">processFileList</span><span class="p">(</span><span class="nx">files</span><span class="p">,</span> <span class="nx">opts</span><span class="p">)</span> <span class="p">{</span>
+
+        <span class="kd">var</span> <span class="nx">filesLeft</span> <span class="o">=</span> <span class="nx">files</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
+        <span class="kd">var</span> <span class="nx">group</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="nx">groupID</span><span class="o">:</span> <span class="nx">getGroupID</span><span class="p">(),</span>
+            <span class="nx">files</span><span class="o">:</span> <span class="nx">files</span><span class="p">,</span>
+            <span class="nx">started</span><span class="o">:</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">()</span>
+        <span class="p">};</span>
+
+        <span class="kd">function</span> <span class="nx">groupEnd</span><span class="p">()</span> <span class="p">{</span>
+            <span class="nx">group</span><span class="p">.</span><span class="nx">ended</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">();</span>
+            <span class="nx">opts</span><span class="p">.</span><span class="nx">on</span><span class="p">.</span><span class="nx">groupend</span><span class="p">(</span><span class="nx">group</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="kd">function</span> <span class="nx">groupFileDone</span><span class="p">()</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="o">--</span><span class="nx">filesLeft</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">groupEnd</span><span class="p">();</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="nx">FileReaderJS</span><span class="p">.</span><span class="nx">output</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">group</span><span class="p">);</span>
+        <span class="nx">setupCustomFileProperties</span><span class="p">(</span><span class="nx">files</span><span class="p">,</span> <span class="nx">group</span><span class="p">.</span><span class="nx">groupID</span><span class="p">);</span>
+
+        <span class="nx">opts</span><span class="p">.</span><span class="nx">on</span><span class="p">.</span><span class="nx">groupstart</span><span class="p">(</span><span class="nx">group</span><span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-16">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-16">&#182;</a>               </div>               <p>No files in group - end immediately</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">files</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">groupEnd</span><span class="p">();</span>
+            <span class="k">return</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="kd">var</span> <span class="nx">sync</span> <span class="o">=</span> <span class="nx">FileReaderJS</span><span class="p">.</span><span class="nx">sync</span> <span class="o">&amp;&amp;</span> <span class="nx">FileReaderSyncSupport</span><span class="p">;</span>
+        <span class="kd">var</span> <span class="nx">syncWorker</span><span class="p">;</span></pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-17">&#182;</a>               </div>               <p>Only initialize the synchronous worker if the option is enabled - to prevent the overhead</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="k">if</span> <span class="p">(</span><span class="nx">sync</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">syncWorker</span> <span class="o">=</span> <span class="nx">WorkerHelper</span><span class="p">.</span><span class="nx">getWorker</span><span class="p">(</span><span class="nx">workerScript</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+                <span class="kd">var</span> <span class="nx">file</span> <span class="o">=</span> <span class="nx">e</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">file</span><span class="p">;</span>
+                <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="nx">e</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">result</span><span class="p">;</span></pre></div>             </td>           </tr>                               <tr id="section-18">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-18">&#182;</a>               </div>               <p>Workers seem to lose the custom property on the file object.</p>             </td>             <td class="code">               <div class="highlight"><pre>                <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">file</span><span class="p">.</span><span class="nx">extra</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="nx">file</span><span class="p">.</span><span class="nx">extra</span> <span class="o">=</span> <span class="nx">e</span><span class="p">.</span><span class="nx">data</span><span class="p">.</span><span class="nx">extra</span><span class="p">;</span>
+                <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-19">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-19">&#182;</a>               </div>               <p>Call error or load event depending on success of the read from the worker.</p>             </td>             <td class="code">               <div class="highlight"><pre>                <span class="nx">opts</span><span class="p">.</span><span class="nx">on</span><span class="p">[</span><span class="nx">result</span> <span class="o">===</span> <span class="s2">&quot;error&quot;</span> <span class="o">?</span> <span class="s2">&quot;error&quot;</span> <span class="o">:</span> <span class="s2">&quot;load&quot;</span><span class="p">]({</span> <span class="nx">target</span><span class="o">:</span> <span class="p">{</span> <span class="nx">result</span><span class="o">:</span> <span class="nx">result</span> <span class="p">}</span> <span class="p">},</span> <span class="nx">file</span><span class="p">);</span>
+                <span class="nx">groupFileDone</span><span class="p">();</span>
+
+            <span class="p">});</span>
+        <span class="p">}</span>
+
+        <span class="nb">Array</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">forEach</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="nx">files</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">file</span><span class="p">)</span> <span class="p">{</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="nx">opts</span><span class="p">.</span><span class="nx">accept</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">file</span><span class="p">.</span><span class="nx">type</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="k">new</span> <span class="nb">RegExp</span><span class="p">(</span><span class="nx">opts</span><span class="p">.</span><span class="nx">accept</span><span class="p">)))</span> <span class="p">{</span>
+                <span class="nx">opts</span><span class="p">.</span><span class="nx">on</span><span class="p">.</span><span class="nx">skip</span><span class="p">(</span><span class="nx">file</span><span class="p">);</span>
+                <span class="nx">groupFileDone</span><span class="p">();</span>
+                <span class="k">return</span><span class="p">;</span>
+            <span class="p">}</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="nx">opts</span><span class="p">.</span><span class="nx">on</span><span class="p">.</span><span class="nx">beforestart</span><span class="p">(</span><span class="nx">file</span><span class="p">)</span> <span class="o">===</span> <span class="kc">false</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">opts</span><span class="p">.</span><span class="nx">on</span><span class="p">.</span><span class="nx">skip</span><span class="p">(</span><span class="nx">file</span><span class="p">);</span>
+                <span class="nx">groupFileDone</span><span class="p">();</span>
+                <span class="k">return</span><span class="p">;</span>
+            <span class="p">}</span>
+
+            <span class="kd">var</span> <span class="nx">readAs</span> <span class="o">=</span> <span class="nx">getReadAsMethod</span><span class="p">(</span><span class="nx">file</span><span class="p">.</span><span class="nx">type</span><span class="p">,</span> <span class="nx">opts</span><span class="p">.</span><span class="nx">readAsMap</span><span class="p">,</span> <span class="nx">opts</span><span class="p">.</span><span class="nx">readAsDefault</span><span class="p">);</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="nx">sync</span> <span class="o">&amp;&amp;</span> <span class="nx">syncWorker</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">syncWorker</span><span class="p">.</span><span class="nx">postMessage</span><span class="p">({</span>
+                    <span class="nx">file</span><span class="o">:</span> <span class="nx">file</span><span class="p">,</span>
+                    <span class="nx">extra</span><span class="o">:</span> <span class="nx">file</span><span class="p">.</span><span class="nx">extra</span><span class="p">,</span>
+                    <span class="nx">readAs</span><span class="o">:</span> <span class="nx">readAs</span>
+                <span class="p">});</span>
+            <span class="p">}</span>
+            <span class="k">else</span> <span class="p">{</span>
+
+                <span class="kd">var</span> <span class="nx">reader</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">FileReader</span><span class="p">();</span>
+
+                <span class="nx">fileReaderEvents</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">eventName</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="nx">reader</span><span class="p">[</span><span class="s1">&#39;on&#39;</span> <span class="o">+</span> <span class="nx">eventName</span><span class="p">]</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+                        <span class="nx">opts</span><span class="p">.</span><span class="nx">on</span><span class="p">[</span><span class="nx">eventName</span><span class="p">](</span><span class="nx">e</span><span class="p">,</span> <span class="nx">file</span><span class="p">);</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="nx">eventName</span> <span class="o">==</span> <span class="s1">&#39;loadend&#39;</span><span class="p">)</span> <span class="p">{</span>
+                            <span class="nx">groupFileDone</span><span class="p">();</span>
+                        <span class="p">}</span>
+                    <span class="p">};</span>
+                <span class="p">});</span>
+
+                <span class="nx">reader</span><span class="p">[</span><span class="nx">readAs</span><span class="p">](</span><span class="nx">file</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">});</span>
+    <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-20">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-20">&#182;</a>               </div>               <p>checkFileReaderSyncSupport: Create a temporary worker and see if FileReaderSync exists</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">checkFileReaderSyncSupport</span><span class="p">()</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">worker</span> <span class="o">=</span> <span class="nx">WorkerHelper</span><span class="p">.</span><span class="nx">getWorker</span><span class="p">(</span><span class="nx">syncDetectionScript</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">FileReaderSyncSupport</span> <span class="o">=</span> <span class="nx">e</span><span class="p">.</span><span class="nx">data</span><span class="p">;</span>
+        <span class="p">});</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="nx">worker</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">worker</span><span class="p">.</span><span class="nx">postMessage</span><span class="p">();</span>
+        <span class="p">}</span>
+    <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-21">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-21">&#182;</a>               </div>               <p>noop: do nothing</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">noop</span><span class="p">()</span> <span class="p">{</span>
+
+    <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-22">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-22">&#182;</a>               </div>               <p>extend: used to make deep copies of options object</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">extend</span><span class="p">(</span><span class="nx">destination</span><span class="p">,</span> <span class="nx">source</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">property</span> <span class="k">in</span> <span class="nx">source</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">source</span><span class="p">[</span><span class="nx">property</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="nx">source</span><span class="p">[</span><span class="nx">property</span><span class="p">].</span><span class="nx">constructor</span> <span class="o">&amp;&amp;</span>
+                <span class="nx">source</span><span class="p">[</span><span class="nx">property</span><span class="p">].</span><span class="nx">constructor</span> <span class="o">===</span> <span class="nb">Object</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">destination</span><span class="p">[</span><span class="nx">property</span><span class="p">]</span> <span class="o">=</span> <span class="nx">destination</span><span class="p">[</span><span class="nx">property</span><span class="p">]</span> <span class="o">||</span> <span class="p">{};</span>
+                <span class="nx">arguments</span><span class="p">.</span><span class="nx">callee</span><span class="p">(</span><span class="nx">destination</span><span class="p">[</span><span class="nx">property</span><span class="p">],</span> <span class="nx">source</span><span class="p">[</span><span class="nx">property</span><span class="p">]);</span>
+            <span class="p">}</span>
+            <span class="k">else</span> <span class="p">{</span>
+                <span class="nx">destination</span><span class="p">[</span><span class="nx">property</span><span class="p">]</span> <span class="o">=</span> <span class="nx">source</span><span class="p">[</span><span class="nx">property</span><span class="p">];</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="nx">destination</span><span class="p">;</span>
+    <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-23">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-23">&#182;</a>               </div>               <p>hasClass: does an element have the css class?</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">hasClass</span><span class="p">(</span><span class="nx">el</span><span class="p">,</span> <span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nb">RegExp</span><span class="p">(</span><span class="s2">&quot;(?:^|\\s+)&quot;</span> <span class="o">+</span> <span class="nx">name</span> <span class="o">+</span> <span class="s2">&quot;(?:\\s+|$)&quot;</span><span class="p">).</span><span class="nx">test</span><span class="p">(</span><span class="nx">el</span><span class="p">.</span><span class="nx">className</span><span class="p">);</span>
+    <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-24">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-24">&#182;</a>               </div>               <p>addClass: add the css class for the element.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">addClass</span><span class="p">(</span><span class="nx">el</span><span class="p">,</span> <span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">el</span><span class="p">,</span> <span class="nx">name</span><span class="p">))</span> <span class="p">{</span>
+          <span class="nx">el</span><span class="p">.</span><span class="nx">className</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">className</span> <span class="o">?</span> <span class="p">[</span><span class="nx">el</span><span class="p">.</span><span class="nx">className</span><span class="p">,</span> <span class="nx">name</span><span class="p">].</span><span class="nx">join</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span> <span class="o">:</span> <span class="nx">name</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-25">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-25">&#182;</a>               </div>               <p>removeClass: remove the css class from the element.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">removeClass</span><span class="p">(</span><span class="nx">el</span><span class="p">,</span> <span class="nx">name</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">hasClass</span><span class="p">(</span><span class="nx">el</span><span class="p">,</span> <span class="nx">name</span><span class="p">))</span> <span class="p">{</span>
+          <span class="kd">var</span> <span class="nx">c</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">className</span><span class="p">;</span>
+          <span class="nx">el</span><span class="p">.</span><span class="nx">className</span> <span class="o">=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="k">new</span> <span class="nb">RegExp</span><span class="p">(</span><span class="s2">&quot;(?:^|\\s+)&quot;</span> <span class="o">+</span> <span class="nx">name</span> <span class="o">+</span> <span class="s2">&quot;(?:\\s+|$)&quot;</span><span class="p">,</span> <span class="s2">&quot;g&quot;</span><span class="p">),</span> <span class="s2">&quot; &quot;</span><span class="p">).</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/^\s\s*/</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">).</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/\s\s*$/</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-26">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-26">&#182;</a>               </div>               <p>prettySize: convert bytes to a more readable string.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">function</span> <span class="nx">prettySize</span><span class="p">(</span><span class="nx">bytes</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">s</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;bytes&#39;</span><span class="p">,</span> <span class="s1">&#39;kb&#39;</span><span class="p">,</span> <span class="s1">&#39;MB&#39;</span><span class="p">,</span> <span class="s1">&#39;GB&#39;</span><span class="p">,</span> <span class="s1">&#39;TB&#39;</span><span class="p">,</span> <span class="s1">&#39;PB&#39;</span><span class="p">];</span>
+        <span class="kd">var</span> <span class="nx">e</span> <span class="o">=</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">floor</span><span class="p">(</span><span class="nb">Math</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">bytes</span><span class="p">)</span><span class="o">/</span><span class="nb">Math</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="mi">1024</span><span class="p">));</span>
+        <span class="k">return</span> <span class="p">(</span><span class="nx">bytes</span><span class="o">/</span><span class="nb">Math</span><span class="p">.</span><span class="nx">pow</span><span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">floor</span><span class="p">(</span><span class="nx">e</span><span class="p">))).</span><span class="nx">toFixed</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot; &quot;</span><span class="o">+</span><span class="nx">s</span><span class="p">[</span><span class="nx">e</span><span class="p">];</span>
+    <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-27">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-27">&#182;</a>               </div>               <p>getGroupID: generate a unique int ID for groups.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">var</span> <span class="nx">getGroupID</span> <span class="o">=</span> <span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">id</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="nx">id</span><span class="o">++</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">})(</span><span class="mi">0</span><span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-28">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-28">&#182;</a>               </div>               <p>getUniqueID: generate a unique int ID for files</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="kd">var</span> <span class="nx">getUniqueID</span> <span class="o">=</span> <span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">id</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="nx">id</span><span class="o">++</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">})(</span><span class="mi">0</span><span class="p">);</span></pre></div>             </td>           </tr>                               <tr id="section-29">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-29">&#182;</a>               </div>               <p>The interface is supported, bind the FileReaderJS callbacks</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nx">FileReaderJS</span><span class="p">.</span><span class="nx">enabled</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="nx">checkFileReaderSyncSupport</span><span class="p">();</span>
+
+<span class="p">})(</span><span class="k">this</span><span class="p">,</span> <span class="nb">document</span><span class="p">);</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
