@@ -306,6 +306,8 @@
                     file.extra = e.data.extra;
                 }
 
+                file.extra.ended = new Date();
+
                 // Call error or load event depending on success of the read from the worker.
                 opts.on[result === "error" ? "error" : "load"]({ target: { result: result } }, file);
                 groupFileDone();
@@ -314,6 +316,8 @@
         }
 
         Array.prototype.forEach.call(files, function(file) {
+
+            file.extra.started = new Date();
 
             if (opts.accept && !file.type.match(new RegExp(opts.accept))) {
                 opts.on.skip(file);
@@ -342,9 +346,12 @@
 
                 fileReaderEvents.forEach(function(eventName) {
                     reader['on' + eventName] = function(e) {
+                        if (eventName == 'load' || eventName == 'error') {
+                            file.extra.ended = new Date();
+                        }
                         opts.on[eventName](e, file);
                         if (eventName == 'loadend') {
-                            groupFileDone();
+                            groupFileDone(file);
                         }
                     };
                 });
