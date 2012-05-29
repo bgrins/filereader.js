@@ -115,6 +115,9 @@
         background: #dec857;
     }
  	.done .filename { color: #357048; }
+ 	.done .not-done { display:none; }
+ 	.on-done { display:none; }
+ 	.done .on-done { display: inline-block; }
 	</style>
 
 </head>
@@ -368,7 +371,7 @@ $("body").fileClipboard(opts);
 			html.push(
 				"<li id='" + id + "' data-fileid='" + file.extra.fileID + "' data-groupid='"+ groupID +"'>" +
 					"<span class='filename'>" + file.name + "</span> " +
-                    "<br />" +
+					"<div><span class='not-done'><em>Loading...</em></span><span class='on-done'><span class='time-to-load'></span> ms</span></div>" +
 					"<span class='details'><a href='#' class='btn'>details</a></span> " +
                     "<div class='modal hide'>" + file.name + "<br />" + file.type + "<br /></div>" +
 					"<pre>" + JSON.stringify(file, null, '\t') + "</pre>" +
@@ -384,8 +387,11 @@ $("body").fileClipboard(opts);
 	var opts = {
 		on: {
 			load: function(e, file) {
-				var fileDiv = $("#group_" + file.extra.groupID + "_file_" + file.extra.fileID).addClass("done");
+				var fileDiv = $("#group_" + file.extra.groupID + "_file_" + file.extra.fileID)
+				fileDiv.addClass("done");
 
+				var ms = file.extra.ended - file.extra.started;
+				fileDiv.find(".time-to-load").text(ms);
                 if (file.type.match(/image/)) {
                     // Create a thumbnail and add it to the output if it is an image
                     var img = new Image();
@@ -417,7 +423,7 @@ $("body").fileClipboard(opts);
 			},
 			groupend: function(group) {
 				$("#group_" + group.groupID).append(
-					"(Time to load: " + (group.ended - group.started) + "ms)"
+					"<div>(Time to load: " + (group.ended - group.started) + "ms)</div>"
 				);
 			}
 		}
@@ -437,6 +443,7 @@ $("body").fileClipboard(opts);
         	$("#file-list").empty();
         	return false;
         });
+        $("body").toggleClass("disabled", !FileReaderJS.enabled);
     });
 	</script>
 </body>
