@@ -40,6 +40,8 @@
 	#dropzone { padding:20px; border: solid 3px #050; text-align: center;}
 	#dropzone.drag { border: solid 3px #0f0; }
 
+	#file-list + small { display:none; }
+	#file-list:not(:empty) + small { display:block; }
 	#file-list:empty:before { content: "Add a file using one of the methods to the left and it will show up here."; display:block;  }
 	#file-list { margin: 2px; }
 	#file-list li { margin:10px 0; list-style: none; }
@@ -327,7 +329,7 @@ $("body").fileClipboard(opts);
       </div>
 
       <div class="sidebar well" id="sidebar">
-          <h4>Demo - Loaded Files</h4>
+          <h4>Demo - Loaded Files </h4>
             <hr />
             <p>
             <form class='form'>
@@ -340,8 +342,8 @@ $("body").fileClipboard(opts);
             </form>
             </p>
             <hr />
-			<ul id='file-list'>
-			</ul>
+			<ul id='file-list'></ul>
+            <small><a href='#' id='clear-list'>clear all items</a></small>
       </div>
       <footer>
         <p></p>
@@ -430,6 +432,10 @@ $("body").fileClipboard(opts);
         $(".sidebar").on('click', 'input', function() {
             FileReaderJS.sync = $("#sync").is(":checked");
             $("body").toggleClass("sync", !!FileReaderJS.sync);
+        });
+        $("#clear-list").on("click", function() {
+        	$("#file-list").empty();
+        	return false;
         });
     });
 	</script>
