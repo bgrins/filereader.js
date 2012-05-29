@@ -351,7 +351,7 @@
                         }
                         opts.on[eventName](e, file);
                         if (eventName == 'loadend') {
-                            groupFileDone(file);
+                            groupFileDone();
                         }
                     };
                 });
