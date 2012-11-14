@@ -209,7 +209,7 @@
             if (dragClass) {
                 removeClass(dropbox, dragClass);
             }
-            processFileList(e.dataTransfer.files, instanceOptions);
+            processFileList(e, e.dataTransfer.files, instanceOptions);
         }
 
         function dragenter(e) {
@@ -261,7 +261,7 @@
     }
 
     // processFileList: read the files with FileReader, send off custom events.
-    function processFileList(files, opts) {
+    function processFileList(e, files, opts) {
 
         var filesLeft = files.length;
         var group = {
@@ -343,6 +343,7 @@
             else {
 
                 var reader = new FileReader();
+                reader.originalEvent = e;
 
                 fileReaderEvents.forEach(function(eventName) {
                     reader['on' + eventName] = function(e) {
