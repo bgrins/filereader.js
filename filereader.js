@@ -130,7 +130,7 @@
             }
 
             if (files.length) {
-                processFileList(files, instanceOptions);
+                processFileList(e, files, instanceOptions);
                 e.preventDefault();
                 e.stopPropagation();
             }
@@ -149,13 +149,13 @@
         input.addEventListener("drop", inputDrop, false);
 
         function inputChange(e) {
-            processFileList(input.files, instanceOptions);
+            processFileList(e, input.files, instanceOptions);
         }
 
         function inputDrop(e) {
             e.stopPropagation();
             e.preventDefault();
-            processFileList(e.dataTransfer.files, instanceOptions);
+            processFileList(e, e.dataTransfer.files, instanceOptions);
         }
     }
 
