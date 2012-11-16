@@ -46,7 +46,12 @@
     if (typeof(jQuery) !== "undefined") {
         jQuery.fn.fileReaderJS = function(opts) {
             return this.each(function() {
-                $(this).is("input") ? setupInput(this, opts) : setupDrop(this, opts);
+                if ($(this).is("input")) {
+                    setupInput(this, opts);
+                }
+                else {
+                    setupDrop(this, opts);
+                }
             });
         };
 
@@ -62,7 +67,7 @@
         return;
     }
 
-    // WorkerHelper is a little wrapper for generating web weorkers from strings
+    // WorkerHelper is a little wrapper for generating web workers from strings
     var WorkerHelper = (function() {
 
         var URL = window.URL || window.webkitURL;
@@ -77,7 +82,7 @@
             }
 
             return null;
-        };
+        }
 
         // If there is no need to revoke a URL later, or do anything fancy then just return the worker.
         function getWorker (script, onmessage) {
@@ -89,7 +94,7 @@
             }
 
             return null;
-        };
+        }
 
         return {
             getURL: getURL,
@@ -130,12 +135,12 @@
             }
 
             if (files.length) {
-                processFileList(files, instanceOptions);
+                processFileList(e, files, instanceOptions);
                 e.preventDefault();
                 e.stopPropagation();
             }
         }
-    };
+    }
 
     // setupInput: bind the 'change' event to an input[type=file]
     function setupInput(input, opts) {
@@ -149,13 +154,13 @@
         input.addEventListener("drop", inputDrop, false);
 
         function inputChange(e) {
-            processFileList(input.files, instanceOptions);
+            processFileList(e, input.files, instanceOptions);
         }
 
         function inputDrop(e) {
             e.stopPropagation();
             e.preventDefault();
-            processFileList(e.dataTransfer.files, instanceOptions);
+            processFileList(e, e.dataTransfer.files, instanceOptions);
         }
     }
 
@@ -209,7 +214,7 @@
             if (dragClass) {
                 removeClass(dropbox, dragClass);
             }
-            processFileList(e.dataTransfer.files, instanceOptions);
+            processFileList(e, e.dataTransfer.files, instanceOptions);
         }
 
         function dragenter(e) {
@@ -261,7 +266,7 @@
     }
 
     // processFileList: read the files with FileReader, send off custom events.
-    function processFileList(files, opts) {
+    function processFileList(e, files, opts) {
 
         var filesLeft = files.length;
         var group = {
@@ -276,7 +281,7 @@
         }
 
         function groupFileDone() {
-            if (--filesLeft == 0) {
+            if (--filesLeft === 0) {
                 groupEnd();
             }
         }
@@ -306,6 +311,8 @@
                     file.extra = e.data.extra;
                 }
 
+                file.extra.ended = new Date();
+
                 // Call error or load event depending on success of the read from the worker.
                 opts.on[result === "error" ? "error" : "load"]({ target: { result: result } }, file);
                 groupFileDone();
@@ -314,6 +321,8 @@
         }
 
         Array.prototype.forEach.call(files, function(file) {
+
+            file.extra.started = new Date();
 
             if (opts.accept && !file.type.match(new RegExp(opts.accept))) {
                 opts.on.skip(file);
@@ -339,9 +348,13 @@
             else {
 
                 var reader = new FileReader();
+                reader.originalEvent = e;
 
                 fileReaderEvents.forEach(function(eventName) {
                     reader['on' + eventName] = function(e) {
+                        if (eventName == 'load' || eventName == 'error') {
+                            file.extra.ended = new Date();
+                        }
                         opts.on[eventName](e, file);
                         if (eventName == 'loadend') {
                             groupFileDone();
@@ -361,7 +374,7 @@
         });
 
         if (worker) {
-            worker.postMessage();
+            worker.postMessage({});
         }
     }
 
@@ -416,18 +429,17 @@
     var getGroupID = (function(id) {
         return function() {
             return id++;
-        }
+        };
     })(0);
 
     // getUniqueID: generate a unique int ID for files
     var getUniqueID = (function(id) {
         return function() {
             return id++;
-        }
+        };
     })(0);
 
     // The interface is supported, bind the FileReaderJS callbacks
     FileReaderJS.enabled = true;
-    checkFileReaderSyncSupport();
 
 })(this, document);
