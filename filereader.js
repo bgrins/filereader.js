@@ -368,7 +368,7 @@
         });
 
         if (worker) {
-            worker.postMessage();
+            worker.postMessage({});
         }
     }
 
