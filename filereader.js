@@ -46,7 +46,12 @@
     if (typeof(jQuery) !== "undefined") {
         jQuery.fn.fileReaderJS = function(opts) {
             return this.each(function() {
-                $(this).is("input") ? setupInput(this, opts) : setupDrop(this, opts);
+                if ($(this).is("input")) {
+                    setupInput(this, opts);
+                }
+                else {
+                    setupDrop(this, opts);
+                }
             });
         };
 
@@ -62,7 +67,7 @@
         return;
     }
 
-    // WorkerHelper is a little wrapper for generating web weorkers from strings
+    // WorkerHelper is a little wrapper for generating web workers from strings
     var WorkerHelper = (function() {
 
         var URL = window.URL || window.webkitURL;
@@ -77,7 +82,7 @@
             }
 
             return null;
-        };
+        }
 
         // If there is no need to revoke a URL later, or do anything fancy then just return the worker.
         function getWorker (script, onmessage) {
@@ -89,7 +94,7 @@
             }
 
             return null;
-        };
+        }
 
         return {
             getURL: getURL,
@@ -135,7 +140,7 @@
                 e.stopPropagation();
             }
         }
-    };
+    }
 
     // setupInput: bind the 'change' event to an input[type=file]
     function setupInput(input, opts) {
@@ -276,7 +281,7 @@
         }
 
         function groupFileDone() {
-            if (--filesLeft == 0) {
+            if (--filesLeft === 0) {
                 groupEnd();
             }
         }
@@ -423,18 +428,17 @@
     var getGroupID = (function(id) {
         return function() {
             return id++;
-        }
+        };
     })(0);
 
     // getUniqueID: generate a unique int ID for files
     var getUniqueID = (function(id) {
         return function() {
             return id++;
-        }
+        };
     })(0);
 
     // The interface is supported, bind the FileReaderJS callbacks
     FileReaderJS.enabled = true;
-    checkFileReaderSyncSupport();
 
 })(this, document);
