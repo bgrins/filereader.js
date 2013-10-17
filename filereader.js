@@ -47,7 +47,7 @@
     if (typeof(jQuery) !== "undefined") {
         jQuery.fn.fileReaderJS = function(opts) {
             return this.each(function() {
-                if ($(this).is("input")) {
+                if (jQuery(this).is("input")) {
                     setupInput(this, opts);
                 }
                 else {
