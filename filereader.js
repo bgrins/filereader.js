@@ -1,5 +1,6 @@
 /*!
-    FileReader.js - a lightweight wrapper for common FileReader usage.
+    FileReader.js - v0.9
+    A lightweight wrapper for common FileReader usage.
     Copyright 2012 Brian Grinstead - MIT License.
     See http://github.com/bgrins/filereader.js for documentation.
 */
@@ -46,7 +47,7 @@
     if (typeof(jQuery) !== "undefined") {
         jQuery.fn.fileReaderJS = function(opts) {
             return this.each(function() {
-                if ($(this).is("input")) {
+                if (jQuery(this).is("input")) {
                     setupInput(this, opts);
                 }
                 else {
