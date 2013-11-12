@@ -436,8 +436,10 @@ $("body").fileClipboard(opts);
 
     $(function() {
         $(".sidebar").on('click', 'input', function() {
-            FileReaderJS.sync = $("#sync").is(":checked");
-            $("body").toggleClass("sync", !!FileReaderJS.sync);
+            FileReaderJS.setSync($("#sync").is(":checked"));
+            setTimeout(function() {
+              $("body").toggleClass("sync", !!FileReaderJS.getSync());
+            }, 100);
         });
         $("#clear-list").on("click", function() {
         	$("#file-list").empty();

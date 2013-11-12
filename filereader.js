@@ -1,8 +1,8 @@
 /*!
-    FileReader.js - v0.9
-    A lightweight wrapper for common FileReader usage.
-    Copyright 2012 Brian Grinstead - MIT License.
-    See http://github.com/bgrins/filereader.js for documentation.
+FileReader.js - v0.99
+A lightweight wrapper for common FileReader usage.
+Copyright 2012 Brian Grinstead - MIT License.
+See http://github.com/bgrins/filereader.js for documentation.
 */
 
 (function(window, document) {
@@ -10,23 +10,30 @@
     var FileReader = window.FileReader;
     var FileReaderSyncSupport = false;
     var workerScript = "self.addEventListener('message', function(e) { var data=e.data; try { var reader = new FileReaderSync; postMessage({ result: reader[data.readAs](data.file), extra: data.extra, file: data.file})} catch(e){ postMessage({ result:'error', extra:data.extra, file:data.file}); } }, false);";
-    var syncDetectionScript = "self.addEventListener('message', function(e) { postMessage(!!FileReaderSync); }, false);";
+    var syncDetectionScript = "onmessage = function(e) { postMessage(!!FileReaderSync); };";
     var fileReaderEvents = ['loadstart', 'progress', 'load', 'abort', 'error', 'loadend'];
-
+    var sync = false;
     var FileReaderJS = window.FileReaderJS = {
         enabled: false,
         setupInput: setupInput,
         setupDrop: setupDrop,
         setupClipboard: setupClipboard,
-        sync: false,
+        setSync: function (value) {
+            sync = value;
+
+            if (sync && !FileReaderSyncSupport) {
+                checkFileReaderSyncSupport();
+            }
+        },
+        getSync: function() {
+            return sync && FileReaderSyncSupport;
+        },
         output: [],
         opts: {
             dragClass: "drag",
             accept: false,
             readAsDefault: 'BinaryString',
             readAsMap: {
-                'image/*': 'DataURL',
-                'text/*' : 'Text'
             },
             on: {
                 loadstart: noop,
@@ -63,46 +70,26 @@
         };
     }
 
-    // Not all browsers support the FileReader interface.  Return with the enabled bit = false.
+    // Not all browsers support the FileReader interface. Return with the enabled bit = false.
     if (!FileReader) {
         return;
     }
 
-    // WorkerHelper is a little wrapper for generating web workers from strings
-    var WorkerHelper = (function() {
 
+    // makeWorker is a little wrapper for generating web workers from strings
+    function makeWorker(script) {
         var URL = window.URL || window.webkitURL;
-        var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
+        var Blob = window.Blob;
+        var Worker = window.Worker;
 
-        // May need to get just the URL in case it is needed for things beyond just creating a worker.
-        function getURL (script) {
-            if (window.Worker && BlobBuilder && URL) {
-                var bb = new BlobBuilder();
-                bb.append(script);
-                return URL.createObjectURL(bb.getBlob());
-            }
-
+        if (!URL || !Blob || !Worker || !script) {
             return null;
         }
 
-        // If there is no need to revoke a URL later, or do anything fancy then just return the worker.
-        function getWorker (script, onmessage) {
-            var url = getURL(script);
-            if (url) {
-                var worker = new Worker(url);
-                worker.onmessage = onmessage;
-                return worker;
-            }
-
-            return null;
-        }
-
-        return {
-            getURL: getURL,
-            getWorker: getWorker
-        };
-
-    })();
+        var blob = new Blob([script]);
+        var worker = new Worker(URL.createObjectURL(blob));
+        return worker;
+    }
 
     // setupClipboard: bind to clipboard events (intended for document.body)
     function setupClipboard(element, opts) {
@@ -298,12 +285,13 @@
             return;
         }
 
-        var sync = FileReaderJS.sync && FileReaderSyncSupport;
+        var supportsSync = sync && FileReaderSyncSupport;
         var syncWorker;
 
         // Only initialize the synchronous worker if the option is enabled - to prevent the overhead
-        if (sync) {
-            syncWorker = WorkerHelper.getWorker(workerScript, function(e) {
+        if (supportsSync) {
+            syncWorker = makeWorker(workerScript);
+            syncWorker.onmessage = function(e) {
                 var file = e.data.file;
                 var result = e.data.result;
 
@@ -317,8 +305,7 @@
                 // Call error or load event depending on success of the read from the worker.
                 opts.on[result === "error" ? "error" : "load"]({ target: { result: result } }, file);
                 groupFileDone();
-
-            });
+            };
         }
 
         Array.prototype.forEach.call(files, function(file) {
@@ -339,7 +326,7 @@
 
             var readAs = getReadAsMethod(file.type, opts.readAsMap, opts.readAsDefault);
 
-            if (sync && syncWorker) {
+            if (syncWorker) {
                 syncWorker.postMessage({
                     file: file,
                     extra: file.extra,
@@ -362,7 +349,6 @@
                         }
                     };
                 });
-
                 reader[readAs](file);
             }
         });
@@ -370,11 +356,11 @@
 
     // checkFileReaderSyncSupport: Create a temporary worker and see if FileReaderSync exists
     function checkFileReaderSyncSupport() {
-        var worker = WorkerHelper.getWorker(syncDetectionScript, function(e) {
-            FileReaderSyncSupport = e.data;
-        });
-
+        var worker = makeWorker(syncDetectionScript);
         if (worker) {
+            worker.onmessage =function(e) {
+                FileReaderSyncSupport = e.data;
+            };
             worker.postMessage({});
         }
     }
