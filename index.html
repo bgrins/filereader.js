@@ -156,12 +156,8 @@
             	</p>
             	<p>
             		Or you can jump straight to the
-                	<a href='https://raw.github.com/bgrins/filereader.js/master/filereader.js'>filereader.js</a> or
-                	<a href='https://raw.github.com/bgrins/filereader.js/master/filereader.min.js'>filereader.min.js</a>
+                	<a href='https://raw.github.com/bgrins/filereader.js/master/filereader.js'>filereader.js</a>
                 	if you are in a hurry.
-                </p>
-                <p>
-                	If you've got some time to look around, check out the <a href='docs/filereader.html' target="_blank">annotated source code</a>!
                 </p>
 			</div>
 		</div>
@@ -265,6 +261,8 @@ var opts = {
 FileReaderJS.setupInput(document.getElementById('file-input'), opts);
 FileReaderJS.setupDrop(document.getElementById('dropzone'), opts);
 FileReaderJS.setupClipboard(document.body, opts);
+
+FileReaderJS.setSync(true/<strong>false</strong>); // Attempt to use FileReaderSync in a worker if available.
 </pre>
 				</p>
 				<p>
