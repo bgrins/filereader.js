@@ -1,7 +1,7 @@
 /*!
 FileReader.js - v0.99
 A lightweight wrapper for common FileReader usage.
-Copyright 2012 Brian Grinstead - MIT License.
+Copyright 2014 Brian Grinstead - MIT License.
 See http://github.com/bgrins/filereader.js for documentation.
 */
 
