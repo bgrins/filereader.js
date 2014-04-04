@@ -33,7 +33,7 @@ Use the `FileReaderSync` object when available to load the files in a separate w
 			'image/*': 'DataURL',
 			'text/*' : 'Text'
 		}
-	readAsDefault: 'ArrayBuffer' | 'BinaryString' (default) | 'Text' | 'DataURL'
+	readAsDefault: 'ArrayBuffer' | 'Text' | 'DataURL' (default)
 	accept: A regex string to match the contenttype of a given file.
 			For example: 'image/*' to only accept images.
 			on.skip will be called when a file does not match the filter.
