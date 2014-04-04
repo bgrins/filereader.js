@@ -32,7 +32,7 @@ See http://github.com/bgrins/filereader.js for documentation.
         opts: {
             dragClass: "drag",
             accept: false,
-            readAsDefault: 'BinaryString',
+            readAsDefault: 'DataURL',
             readAsMap: {
             },
             on: {
