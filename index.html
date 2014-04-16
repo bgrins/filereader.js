@@ -203,12 +203,39 @@
       <div class="offset1">
         <h2>Usage</h2>
         <p>
-          <strong>There is no jQuery or any other library dependancy for FileReader.js</strong>.  It will work with a simple call to
+          <strong>There is no jQuery or any other library dependancy for FileReader.js</strong>.
+
+          <h3>Markup</h3>
 <pre class="prettyprint">
 &lt;script type='text/javascript' src='filereader.js'&gt;&lt;/script&gt;
 </pre>
+          <h3>Usage</h3>
+          <p>
+            You don't need any other libraries.  It can be called after adding the script with:
+          </p>
 <pre class="prettyprint">
-var opts = {
+// Accept files from the specified input[type=file]
+FileReaderJS.setupInput(document.getElementById('file-input'), options);
+
+// Accept dropped files on the specified file
+FileReaderJS.setupDrop(document.getElementById('dropzone'), options);
+
+// Accept paste events if available
+FileReaderJS.setupClipboard(document.body, options);
+
+// Attempt to use FileReaderSync in a worker if available.
+FileReaderJS.setSync(true/<strong>false</strong>);
+</pre>
+        <p>
+          If you use jQuery, you could use it as such:
+        </p>
+<pre class="prettyprint">
+$("#file-input, #dropzone").fileReaderJS(opts);
+$("body").fileClipboard(opts);
+</pre>
+          <h3>Options</h3>
+<pre class="prettyprint">
+var options = {
   // CSS Class to add to the drop element when a drag is active
   dragClass: "drag",
 
@@ -252,26 +279,23 @@ var opts = {
   }
 };
 </pre>
+          <h3>Simple Example</h3>
+          <p>
+            Ready to get started?  Here is a sample that reads all files dropped on the body as data URLs.  You can also check out this <a href="http://jsfiddle.net/bgrins/nWP59/">sample on jsfiddle</a>.
+          </p>
 <pre class="prettyprint">
-// Accept files from the specified input[type=file]
-FileReaderJS.setupInput(document.getElementById('file-input'), opts);
-
-// Accept dropped files on the specified file
-FileReaderJS.setupDrop(document.getElementById('dropzone'), opts);
-
-// Accept paste events if available
-FileReaderJS.setupClipboard(document.body, opts);
-
-// Attempt to use FileReaderSync in a worker if available.
-FileReaderJS.setSync(true/<strong>false</strong>);
-</pre>
-        </p>
-        <p>
-          If you do use jQuery, you could use it as such:
-        </p>
-<pre class="prettyprint">
-$("#file-input, #dropzone").fileReaderJS(opts);
-$("body").fileClipboard(opts);
+FileReaderJS.setupDrop(document.body, {
+  readAsDefault: "DataURL",
+  on: {
+    load: function(e, file) {
+      var img = new Image();
+      img.onload = function() {
+        document.body.appendChild(img);
+      };
+      img.src = e.target.result;
+    }
+  }
+});
 </pre>
       </div>
     </div>
