@@ -1,0 +1,22 @@
+{
+  "name": "bgrins/filereader.js",
+  "description": "A lightweight wrapper for the JavaScript FileReader interface",
+  "license": "MIT",
+  "homepage": "http://bgrins.github.io/filereader.js/",
+  "authors": [
+    {
+      "name": "Brian Grinstead",
+      "email": "briangrinstead@gmail.com"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/bgrins/filereader.js/issues"
+  },
+  "extra": {
+    "component": {
+      "scripts": [
+        "filereader.js"
+      ]
+    }
+  }
+}
