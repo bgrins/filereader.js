@@ -16,6 +16,7 @@ See http://github.com/bgrins/filereader.js for documentation.
     var FileReaderJS = window.FileReaderJS = {
         enabled: false,
         setupInput: setupInput,
+        setupBlob: setupBlob,
         setupDrop: setupDrop,
         setupClipboard: setupClipboard,
         setSync: function (value) {
@@ -151,7 +152,30 @@ See http://github.com/bgrins/filereader.js for documentation.
             processFileList(e, e.dataTransfer.files, instanceOptions);
         }
     }
+    // setupFile: bind the 'change' event to an input[type=file]
+    function setupBlob(blob, opts) {
+       
+        if (!FileReaderJS.enabled) {
+            return;
+        }
 
+        if(blob.constructor !== Array && blob.constructor !== Function){
+            if(blob.name === undefined){
+                blob.name = "blob";
+            }          
+            blob = [blob];
+        }else{
+
+            if(blob[0].name === undefined){
+                blob[0].name = "blob";
+            }    
+        }
+        
+        var instanceOptions = extend(extend({}, FileReaderJS.opts), opts);
+
+        processFileList(null, blob, instanceOptions);
+
+    }
     // setupDrop: bind the 'drop' event for a DOM element
     function setupDrop(dropbox, opts) {
 
@@ -255,7 +279,6 @@ See http://github.com/bgrins/filereader.js for documentation.
 
     // processFileList: read the files with FileReader, send off custom events.
     function processFileList(e, files, opts) {
-
         var filesLeft = files.length;
         var group = {
             groupID: getGroupID(),

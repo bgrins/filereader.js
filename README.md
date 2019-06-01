@@ -15,6 +15,7 @@ This plugin is open source under the MIT License.  It was developed in conjuncti
 	FileReaderJS.setupInput(document.getElementById('file-input'), opts);
 	FileReaderJS.setupDrop(document.getElementById('dropzone'), opts);
 	FileReaderJS.setupClipboard(document.body, opts);
+	FileReaderJS.setupBlob(blob, opts);
 
 ## If you have jQuery:
 	$("#file-input, #dropzone").fileReaderJS(opts);
