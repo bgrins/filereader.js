@@ -1,6 +1,6 @@
 # FileReader.js
 
-http://bgrins.github.com/filereader.js/
+http://bgrins.github.io/filereader.js/
 
 A small library independant wrapper for the JavaScript FileReader interface.
 
